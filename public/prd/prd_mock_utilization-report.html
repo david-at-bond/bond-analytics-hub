@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  try {
+    var u = JSON.parse(localStorage.getItem('rt_user') || 'null');
+    if (!u || !String(u.email || '').endsWith('@bondsports.co')) {
+      localStorage.setItem('rt_returnTo', window.location.href);
+      document.documentElement.style.visibility = 'hidden';
+      window.location.replace('/');
+    }
+  } catch(e) {
+    localStorage.setItem('rt_returnTo', window.location.href);
+    document.documentElement.style.visibility = 'hidden';
+    window.location.replace('/');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<title>Utilization Report - Sigma</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #F8F9FA; color: #1A1A1A; font-size: 13px; display: flex; flex-direction: column; min-height: 100vh; }
+
+/* TOP BAR */
+.topbar { background: #fff; border-bottom: 1px solid #E2E8F0; height: 44px; display: flex; align-items: center; padding: 0 16px; gap: 10px; position: sticky; top: 0; z-index: 100; }
+.topbar-logo { font-size: 20px; line-height: 1; }
+.topbar-title { font-size: 14px; font-weight: 600; }
+.topbar-draft { font-size: 12px; color: #718096; }
+.btn-publish { background: #0D4774; color: #fff; border: none; border-radius: 6px 0 0 6px; padding: 5px 14px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.btn-publish-caret { background: #0D4774; color: #fff; border: none; border-left: 1px solid rgba(255,255,255,0.25); border-radius: 0 6px 6px 0; padding: 5px 8px; font-size: 11px; cursor: pointer; }
+.spacer { flex: 1; }
+.topbar-icon { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #718096; cursor: pointer; border-radius: 6px; }
+.topbar-icon:hover { background: #F1F5F9; }
+
+/* LAYOUT */
+.content { padding: 24px; display: flex; flex-direction: column; gap: 16px; max-width: 1400px; }
+
+/* SECTION HEADER */
+.section-header { display: flex; align-items: center; gap: 14px; }
+.section-icon { width: 52px; height: 52px; background: #EBF4FF; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.section-title { font-size: 20px; font-weight: 700; line-height: 1.2; }
+.section-sub { font-size: 12px; color: #718096; margin-top: 3px; }
+
+/* KPI TILES */
+.kpi-row { display: flex; gap: 10px; }
+.kpi-card { flex: 1; background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px 18px; }
+.kpi-val { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi-val.blue { color: #0D4774; }
+.kpi-val.green { color: #0F6E56; }
+.kpi-val.red { color: #A32D2D; }
+.kpi-val.amber { color: #854F0B; }
+.kpi-lbl { font-size: 11px; font-weight: 500; color: #718096; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-delta { font-size: 11px; margin-top: 3px; }
+.kpi-delta.up { color: #0F6E56; }
+.kpi-delta.dn { color: #A32D2D; }
+.kpi-delta.neu { color: #718096; }
+
+/* FILTERS */
+.filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn-filters { background: #0F1923; color: #fff; border: none; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.fpill { background: #fff; border: 1px solid #CBD5E0; border-radius: 6px; padding: 5px 10px; font-size: 12px; color: #4A4A4A; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.fpill.on { background: #EBF4FF; border-color: #0D4774; color: #0D4774; }
+.fpill .x { opacity: 0.5; margin-left: 2px; }
+.btn-reset { background: #C53030; color: #fff; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; margin-left: auto; }
+
+/* CARD WRAPPER */
+.card { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; }
+.card-header { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between; background: #FAFAFA; }
+.card-title { font-size: 13px; font-weight: 600; }
+.card-sub { font-size: 11px; color: #718096; margin-top: 2px; }
+.card-body { padding: 16px; }
+
+/* PRIME HOURS BANNER */
+.prime-banner { background: #FFFBEB; border: 1px solid #F6E05E; border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+.prime-badge { background: #C9A84C; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 2px 8px; letter-spacing: 0.04em; white-space: nowrap; }
+
+/* HEATMAP */
+.heatmap-wrap { overflow-x: auto; }
+.heatmap { display: inline-flex; flex-direction: column; gap: 3px; min-width: 100%; }
+.hm-col-headers { display: flex; gap: 3px; padding-left: 80px; margin-bottom: 2px; }
+.hm-col-lbl { width: 44px; font-size: 10px; color: #718096; text-align: center; flex-shrink: 0; }
+.hm-row { display: flex; gap: 3px; align-items: center; }
+.hm-row-lbl { width: 76px; font-size: 11px; font-weight: 500; color: #4A4A4A; text-align: right; padding-right: 8px; flex-shrink: 0; }
+.hm-cell { width: 44px; height: 34px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; cursor: default; transition: transform 0.1s; position: relative; }
+.hm-cell:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.hm-cell.prime { box-shadow: inset 0 0 0 2px #C9A84C; }
+.c0  { background: #F0F4F8; color: #A0AEC0; }
+.c10 { background: #DDEEFF; color: #5580AA; }
+.c25 { background: #BBDDFF; color: #2255AA; }
+.c40 { background: #88BBEE; color: #fff; }
+.c55 { background: #5599DD; color: #fff; }
+.c70 { background: #2D6FB0; color: #fff; }
+.c85 { background: #0D4774; color: #fff; }
+.c100 { background: #0A3355; color: #fff; }
+.cOVER { background: #C53030; color: #fff; }
+.cFUT { background: #F0F4F8; color: #A0AEC0; border: 1.5px dashed #CBD5E0; }
+
+.hm-legend { display: flex; align-items: center; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.hm-legend-label { font-size: 11px; color: #718096; margin-right: 4px; }
+.hm-swatch { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #4A4A4A; }
+.hm-swatch-box { width: 16px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+
+/* STACKED BAR CHART */
+.bar-chart-area { display: flex; gap: 16px; align-items: flex-end; padding-bottom: 32px; padding-top: 8px; }
+.bar-group { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.stacked-bar { width: 100%; max-width: 80px; height: 200px; display: flex; flex-direction: column; border-radius: 4px 4px 0 0; overflow: hidden; border-bottom: 2px solid #E2E8F0; }
+.bar-empty { background: #F0F4F8; }
+.bar-booked { background: #0D4774; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; border-radius: 0; transition: opacity 0.2s; }
+.bar-booked.proj { background: #0D4774; opacity: 0.45; background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 6px); }
+.bar-day { font-size: 12px; font-weight: 600; color: #4A4A4A; }
+.bar-hrs { font-size: 10px; color: #718096; }
+.bar-legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.bl-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #4A4A4A; }
+.bl-dot { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* TABLE */
+table { width: 100%; border-collapse: collapse; }
+thead th { background: #F8F9FA; font-size: 11px; font-weight: 600; color: #1A1A1A; padding: 8px 12px; border-bottom: 1px solid #E2E8F0; text-align: left; white-space: nowrap; cursor: pointer; user-select: none; }
+thead th.r { text-align: right; }
+thead th::after { content: ' ▾'; color: #CBD5E0; font-size: 9px; }
+tbody tr { border-bottom: 1px solid #F1F5F9; }
+tbody tr:nth-child(even) { background: #FAFAFA; }
+tbody tr:hover { background: #EBF4FF; }
+tbody td { padding: 9px 12px; font-size: 12px; color: #1A1A1A; white-space: nowrap; }
+tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
+.util-pill { display: inline-flex; align-items: center; gap: 6px; }
+.util-track { width: 56px; height: 7px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
+.util-fill { height: 100%; border-radius: 4px; }
+.util-fill.hi { background: #0F6E56; }
+.util-fill.md { background: #C9A84C; }
+.util-fill.lo { background: #A32D2D; }
+.tfoot-row { background: #F8F9FA !important; }
+.tfoot-row td { font-weight: 600; border-top: 2px solid #E2E8F0; }
+.warn-badge { display: inline-flex; align-items: center; gap: 4px; background: #FCEBEB; color: #A32D2D; border-radius: 10px; padding: 2px 8px; font-size: 10px; font-weight: 600; }
+
+/* TAB BAR */
+.tabbar { height: 40px; background: #fff; border-top: 1px solid #E2E8F0; display: flex; align-items: stretch; padding: 0 8px; flex-shrink: 0; overflow-x: auto; }
+.tb-plus { display: flex; align-items: center; padding: 0 10px; font-size: 18px; color: #718096; border-right: 1px solid #E2E8F0; margin-right: 4px; cursor: pointer; flex-shrink: 0; }
+.tb-tab { display: flex; align-items: center; padding: 0 16px; font-size: 13px; font-weight: 600; color: #718096; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; gap: 5px; flex-shrink: 0; }
+.tb-tab.active { color: #0D4774; border-bottom-color: #0D4774; }
+.tb-tab:hover:not(.active) { background: #F8F9FA; color: #1A1A1A; }
+.tb-caret { font-size: 9px; color: #CBD5E0; }
+.tb-end { margin-left: auto; display: flex; align-items: center; gap: 2px; padding-left: 12px; border-left: 1px solid #E2E8F0; }
+.tb-end-btn { background: none; border: none; color: #718096; font-size: 13px; cursor: pointer; padding: 4px 6px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">🐦</div>
+  <div class="topbar-title">Utilization Report</div>
+  <div class="topbar-draft">✏️ Draft ▾</div>
+  <button class="btn-publish">Publish</button>
+  <button class="btn-publish-caret">▾</button>
+  <div class="spacer"></div>
+  <div class="topbar-icon">👤</div>
+  <div class="topbar-icon">🌙</div>
+  <div class="topbar-icon">▾</div>
+  <div class="topbar-icon">⊞</div>
+</div>
+
+<div class="content">
+
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <div class="section-icon">📊</div>
+    <div>
+      <div class="section-title">Facility Utilization</div>
+      <div class="section-sub">Space performance · Revenue per hour · Opportunity cost &nbsp;·&nbsp; Updated daily at 6 AM</div>
+    </div>
+  </div>
+
+  <!-- KPI TILES -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-val blue">68.4%</div>
+      <div class="kpi-lbl">Utilization Rate</div>
+      <div class="kpi-delta up">↑ 4.2% vs last month</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val green">$94.70</div>
+      <div class="kpi-lbl">Revenue / Booked Hour</div>
+      <div class="kpi-delta up">↑ $6.20 vs last month</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val red">$18,420</div>
+      <div class="kpi-lbl">Opportunity Cost</div>
+      <div class="kpi-delta dn">↑ $2,100 vs last month</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val blue">2,847</div>
+      <div class="kpi-lbl">Total Booked Hours</div>
+      <div class="kpi-delta neu">of 4,162 available</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val red">23</div>
+      <div class="kpi-lbl">Overbooked Events</div>
+      <div class="kpi-delta dn">Double-booked slots</div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <button class="btn-filters">Filters ▾</button>
+    <div class="fpill on">📅 Apr 2026 <span class="x">×</span></div>
+    <div class="fpill">Organization <span style="color:#A0AEC0;">Select ▾</span></div>
+    <div class="fpill">Facility <span style="color:#A0AEC0;">Select ▾</span></div>
+    <div class="fpill">Activity / Sport <span style="color:#A0AEC0;">Select ▾</span></div>
+    <div class="fpill on">Weekday / Weekend: Weekday <span class="x">×</span></div>
+    <div class="fpill">Prime Hours <span style="color:#A0AEC0;">All ▾</span></div>
+    <div class="fpill">Day of Week <span style="color:#A0AEC0;">All ▾</span></div>
+    <button class="btn-reset">Reset</button>
+  </div>
+
+  <!-- PRIME HOURS DEFINITION -->
+  <div class="prime-banner">
+    <div class="prime-badge">⚡ SIGMA INPUT TABLE</div>
+    <div style="font-size:12px;color:#1A1A1A;font-weight:500;">Prime Hours Definition</div>
+    <div style="font-size:12px;color:#718096;">Edit per-facility prime windows directly in this workbook — no dbt changes required</div>
+    <div style="margin-left:auto;font-size:12px;color:#C9A84C;cursor:pointer;font-weight:600;">▾ Configure</div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Utilization by Day × Hour</div>
+        <div class="card-sub">Color = utilization % &nbsp;·&nbsp; Gold border = prime hours &nbsp;·&nbsp; Red = overbooked (&gt;100%)</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="heatmap-wrap">
+        <div class="heatmap">
+          <!-- Column labels -->
+          <div class="hm-col-headers">
+            <div class="hm-col-lbl">6 AM</div>
+            <div class="hm-col-lbl">7 AM</div>
+            <div class="hm-col-lbl">8 AM</div>
+            <div class="hm-col-lbl">9 AM</div>
+            <div class="hm-col-lbl">10 AM</div>
+            <div class="hm-col-lbl">11 AM</div>
+            <div class="hm-col-lbl">12 PM</div>
+            <div class="hm-col-lbl">1 PM</div>
+            <div class="hm-col-lbl">2 PM</div>
+            <div class="hm-col-lbl">3 PM</div>
+            <div class="hm-col-lbl">4 PM</div>
+            <div class="hm-col-lbl" style="color:#C9A84C;font-weight:600;">5 PM ⚡</div>
+            <div class="hm-col-lbl" style="color:#C9A84C;font-weight:600;">6 PM ⚡</div>
+            <div class="hm-col-lbl" style="color:#C9A84C;font-weight:600;">7 PM ⚡</div>
+            <div class="hm-col-lbl" style="color:#C9A84C;font-weight:600;">8 PM ⚡</div>
+            <div class="hm-col-lbl">9 PM</div>
+          </div>
+          <!-- Monday -->
+          <div class="hm-row">
+            <div class="hm-row-lbl">Monday</div>
+            <div class="hm-cell c10">12%</div>
+            <div class="hm-cell c25">28%</div>
+            <div class="hm-cell c55">55%</div>
+            <div class="hm-cell c55">62%</div>
+            <div class="hm-cell c40">40%</div>
+            <div class="hm-cell c55">58%</div>
+            <div class="hm-cell c70">75%</div>
+            <div class="hm-cell c55">65%</div>
+            <div class="hm-cell c55">55%</div>
+            <div class="hm-cell c70">78%</div>
+            <div class="hm-cell c85">92%</div>
+            <div class="hm-cell c100 prime">96%</div>
+            <div class="hm-cell cOVER prime">107%</div>
+            <div class="hm-cell c85 prime">88%</div>
+            <div class="hm-cell c70 prime">71%</div>
+            <div class="hm-cell c25">30%</div>
+          </div>
+          <!-- Tuesday -->
+          <div class="hm-row">
+            <div class="hm-row-lbl">Tuesday</div>
+            <div class="hm-cell c0">5%</div>
+            <div class="hm-cell c10">18%</div>
+            <div class="hm-cell c40">42%</div>
+            <div class="hm-cell c55">60%</div>
+            <div class="hm-cell c40">38%</div>
+            <div class="hm-cell c55">62%</div>
+            <div class="hm-cell c70">70%</div>
+            <div class="hm-cell c55">58%</div>
+            <div class="hm-cell c40">44%</div>
+            <div class="hm-cell c55">67%</div>
+            <div class="hm-cell c70">80%</div>
+            <div class="hm-cell c85 prime">89%</div>
+            <div class="hm-cell c100 prime">95%</div>
+            <div class="hm-cell c70 prime">77%</div>
+            <div class="hm-cell c55 prime">60%</div>
+            <div class="hm-cell c10">22%</div>
+          </div>
+          <!-- Wednesday -->
+          <div class="hm-row">
+            <div class="hm-row-lbl">Wednesday</div>
+            <div class="hm-cell c0">8%</div>
+            <div class="hm-cell c25">32%</div>
+            <div class="hm-cell c40">50%</div>
+            <div class="hm-cell c55">65%</div>
+            <div class="hm-cell c55">55%</div>
+            <div class="hm-cell c70">72%</div>
+            <div class="hm-cell c70">80%</div>
+            <div class="hm-cell c55">64%</div>
+            <div class="hm-cell c40">48%</div>
+            <div class="hm-cell c70">75%</div>
+            <div class="hm-cell c85">88%</div>
+            <div class="hm-cell c100 prime">93%</div>
+            <div class="hm-cell cOVER prime">102%</div>
+            <div class="hm-cell c100 prime">91%</div>
+            <div class="hm-cell c70 prime">74%</div>
+            <div class="hm-cell c10">18%</div>
+          </div>
+          <!-- Thursday -->
+          <div class="hm-row">
+            <div class="hm-row-lbl">Thursday</div>
+            <div class="hm-cell c0">6%</div>
+            <div class="hm-cell c10">20%</div>
+            <div class="hm-cell c25">38%</div>
+            <div class="hm-cell c40">45%</div>
+            <div class="hm-cell c25">28%</div>
+            <div class="hm-cell c40">42%</div>
+            <div class="hm-cell c55">60%</div>
+            <div class="hm-cell c40">50%</div>
+            <div class="hm-cell c25">38%</div>
+            <div class="hm-cell c55">62%</div>
+            <div class="hm-cell c70">76%</div>
+            <div class="hm-cell c85 prime">84%</div>
+            <div class="hm-cell c85 prime">90%</div>
+            <div class="hm-cell c70 prime">78%</div>
+            <div class="hm-cell c55 prime">55%</div>
+            <div class="hm-cell c10">14%</div>
+          </div>
+          <!-- Friday -->
+          <div class="hm-row">
+            <div class="hm-row-lbl">Friday</div>
+            <div class="hm-cell c10">15%</div>
+            <div class="hm-cell c25">35%</div>
+            <div class="hm-cell c55">55%</div>
+            <div class="hm-cell c70">72%</div>
+            <div class="hm-cell c55">60%</div>
+            <div class="hm-cell c70">78%</div>
+            <div class="hm-cell c85">88%</div>
+            <div class="hm-cell c70">76%</div>
+            <div class="hm-cell c70">70%</div>
+            <div class="hm-cell c85">86%</div>
+            <div class="hm-cell cOVER">105%</div>
+            <div class="hm-cell cOVER prime">110%</div>
+            <div class="hm-cell c100 prime">98%</div>
+            <div class="hm-cell c100 prime">94%</div>
+            <div class="hm-cell c70 prime">80%</div>
+            <div class="hm-cell c25">32%</div>
+          </div>
+        </div>
+      </div>
+      <!-- Legend -->
+      <div class="hm-legend">
+        <span class="hm-legend-label">Utilization:</span>
+        <div class="hm-swatch"><div class="hm-swatch-box" style="background:#F0F4F8;border:1px solid #E2E8F0;"></div>0%</div>
+        <div class="hm-swatch"><div class="hm-swatch-box" style="background:#BBDDFF;"></div>25%</div>
+        <div class="hm-swatch"><div class="hm-swatch-box" style="background:#5599DD;"></div>55%</div>
+        <div class="hm-swatch"><div class="hm-swatch-box" style="background:#0D4774;"></div>85%</div>
+        <div class="hm-swatch"><div class="hm-swatch-box" style="background:#C53030;"></div>&gt;100% (overbooked)</div>
+        <div style="width:1px;background:#E2E8F0;height:16px;margin:0 4px;"></div>
+        <div class="hm-swatch"><div class="hm-swatch-box" style="background:transparent;box-shadow:inset 0 0 0 2px #C9A84C;"></div><span style="color:#854F0B;">Prime hours ⚡</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAR CHART -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Booked vs Available Hours by Day</div>
+        <div class="card-sub">Dashed bars = future dates (confirmed bookings projected forward)</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="bar-chart-area">
+        <!-- Mon: 87% util (162/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:13;"></div>
+            <div class="bar-booked" style="flex:87;">87%</div>
+          </div>
+          <div class="bar-day">Mon</div>
+          <div class="bar-hrs">162 / 186 hrs</div>
+        </div>
+        <!-- Tue: 53% util (98/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:47;"></div>
+            <div class="bar-booked" style="flex:53;">53%</div>
+          </div>
+          <div class="bar-day">Tue</div>
+          <div class="bar-hrs">98 / 186 hrs</div>
+        </div>
+        <!-- Wed: 66% util (122/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:34;"></div>
+            <div class="bar-booked" style="flex:66;">66%</div>
+          </div>
+          <div class="bar-day">Wed</div>
+          <div class="bar-hrs">122 / 186 hrs</div>
+        </div>
+        <!-- Thu: 49% util (92/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:51;"></div>
+            <div class="bar-booked" style="flex:49;">49%</div>
+          </div>
+          <div class="bar-day">Thu</div>
+          <div class="bar-hrs">92 / 186 hrs</div>
+        </div>
+        <!-- Fri: 80% util (148/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:20;"></div>
+            <div class="bar-booked" style="flex:80;">80%</div>
+          </div>
+          <div class="bar-day">Fri</div>
+          <div class="bar-hrs">148 / 186 hrs</div>
+        </div>
+        <!-- Sat: projected 35% (66/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:65;opacity:0.5;"></div>
+            <div class="bar-booked proj" style="flex:35;">35%</div>
+          </div>
+          <div class="bar-day" style="color:#A0AEC0;">Sat →</div>
+          <div class="bar-hrs" style="color:#A0AEC0;">projected</div>
+        </div>
+        <!-- Sun: projected 24% (44/186) -->
+        <div class="bar-group">
+          <div class="stacked-bar">
+            <div class="bar-empty" style="flex:76;opacity:0.5;"></div>
+            <div class="bar-booked proj" style="flex:24;">24%</div>
+          </div>
+          <div class="bar-day" style="color:#A0AEC0;">Sun →</div>
+          <div class="bar-hrs" style="color:#A0AEC0;">projected</div>
+        </div>
+      </div>
+      <div class="bar-legend">
+        <div class="bl-item"><div class="bl-dot" style="background:#0D4774;"></div>Booked (actual) — bottom of bar</div>
+        <div class="bl-item"><div class="bl-dot" style="background:#0D4774;opacity:0.45;"></div>Projected (future confirmed bookings)</div>
+        <div class="bl-item"><div class="bl-dot" style="background:#F0F4F8;border:1px solid #E2E8F0;"></div>Available (unbooked hours)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Facility Detail</div>
+      <div style="display:flex;gap:8px;">
+        <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;">+ Column</button>
+        <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;">↓ Export</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Organization</th>
+          <th>Facility</th>
+          <th>Activity</th>
+          <th class="r">Avail Hrs</th>
+          <th class="r">Booked Hrs</th>
+          <th class="r">Util %</th>
+          <th class="r">Prime Util</th>
+          <th class="r">Non-Prime</th>
+          <th class="r">Revenue</th>
+          <th class="r">Rev / Hr</th>
+          <th class="r">Opp Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Community Rec Inc</td><td>Main Gym Floor A</td><td>Basketball</td>
+          <td class="r">186</td><td class="r">162</td>
+          <td class="r"><div class="util-pill"><div class="util-track"><div class="util-fill hi" style="width:87%;"></div></div><span style="color:#0F6E56;font-weight:600;">87%</span></div></td>
+          <td class="r" style="color:#0F6E56;font-weight:600;">94%</td><td class="r">62%</td>
+          <td class="r">$15,288</td><td class="r">$94.37</td><td class="r" style="color:#4A4A4A;">$2,262</td>
+        </tr>
+        <tr>
+          <td>TOCA</td><td>Field 1 — North</td><td>Soccer</td>
+          <td class="r">186</td><td class="r">134</td>
+          <td class="r"><div class="util-pill"><div class="util-track"><div class="util-fill md" style="width:72%;"></div></div><span style="color:#854F0B;font-weight:600;">72%</span></div></td>
+          <td class="r" style="color:#854F0B;font-weight:600;">86%</td><td class="r">44%</td>
+          <td class="r">$22,780</td><td class="r">$170.00</td><td class="r" style="color:#A32D2D;font-weight:600;">$8,840</td>
+        </tr>
+        <tr>
+          <td>Orlando Ice Den</td><td>Rink 2</td><td>Ice Hockey</td>
+          <td class="r">124</td><td class="r">68</td>
+          <td class="r"><div class="util-pill"><div class="util-track"><div class="util-fill lo" style="width:55%;"></div></div><span style="color:#A32D2D;font-weight:600;">55%</span></div></td>
+          <td class="r" style="color:#A32D2D;font-weight:600;">48%</td><td class="r">69%</td>
+          <td class="r">$18,224</td><td class="r">$268.00</td><td class="r" style="color:#A32D2D;font-weight:600;">$15,040</td>
+        </tr>
+        <tr>
+          <td>Salt Lake Indoor Soccer</td><td>Field A — Turf</td><td>Soccer</td>
+          <td class="r">186</td><td class="r">148</td>
+          <td class="r"><div class="util-pill"><div class="util-track"><div class="util-fill hi" style="width:80%;"></div></div><span style="color:#0F6E56;font-weight:600;">80%</span></div></td>
+          <td class="r" style="color:#0F6E56;font-weight:600;">91%</td><td class="r">55%</td>
+          <td class="r">$13,320</td><td class="r">$90.00</td><td class="r">$3,420</td>
+        </tr>
+        <tr>
+          <td>Facility Rinks (Non-Team)</td><td>Court 3 — Indoor</td><td>Tennis</td>
+          <td class="r">186</td><td class="r">96</td>
+          <td class="r"><div class="util-pill"><div class="util-track"><div class="util-fill lo" style="width:52%;"></div></div><span style="color:#A32D2D;font-weight:600;">52%</span></div></td>
+          <td class="r" style="color:#A32D2D;font-weight:600;">63%</td><td class="r">28%</td>
+          <td class="r">$7,680</td><td class="r">$80.00</td><td class="r" style="color:#A32D2D;font-weight:600;">$7,200</td>
+        </tr>
+        <tr class="tfoot-row">
+          <td colspan="3"><span class="warn-badge">⚠ 23 overbooked events</span></td>
+          <td class="r">868</td><td class="r">608</td>
+          <td class="r" style="color:#0D4774;">70.0%</td>
+          <td class="r" style="color:#0D4774;">76%</td><td class="r">52%</td>
+          <td class="r">$77,292</td><td class="r">$127.13</td>
+          <td class="r" style="color:#A32D2D;">$36,762</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /content -->
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <div class="tb-plus">+</div>
+  <div class="tb-tab active">Utilization Summary <span class="tb-caret">▾</span></div>
+  <div class="tb-tab">Revenue Analysis <span class="tb-caret">▾</span></div>
+  <div class="tb-tab">Raw Data (5m) <span class="tb-caret">▾</span></div>
+  <div class="tb-tab" style="color:#B0B0B0;">Data</div>
+  <div class="tb-end">
+    <button class="tb-end-btn">◁</button>
+    <button class="tb-end-btn">▷</button>
+    <button class="tb-end-btn">⊞</button>
+  </div>
+</div>
+
+</body>
+</html>

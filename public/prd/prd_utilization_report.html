@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  try {
+    var u = JSON.parse(localStorage.getItem('rt_user') || 'null');
+    if (!u || !String(u.email || '').endsWith('@bondsports.co')) {
+      localStorage.setItem('rt_returnTo', window.location.href);
+      document.documentElement.style.visibility = 'hidden';
+      window.location.replace('/');
+    }
+  } catch(e) {
+    localStorage.setItem('rt_returnTo', window.location.href);
+    document.documentElement.style.visibility = 'hidden';
+    window.location.replace('/');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<title>Utilization Report — PRD</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #F8F9FA; color: #1A1A1A; font-size: 14px; line-height: 1.6; }
+
+.page { max-width: 900px; margin: 0 auto; padding: 48px 40px 80px; }
+
+/* HEADER */
+.doc-header { border-bottom: 2px solid #E2E8F0; padding-bottom: 24px; margin-bottom: 40px; }
+.doc-title { font-size: 28px; font-weight: 700; color: #0D4774; line-height: 1.2; margin-bottom: 12px; }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.meta-chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #E2E8F0; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #4A4A4A; }
+.meta-chip strong { color: #1A1A1A; font-weight: 600; }
+.status-draft { background: #FFFBEB; border-color: #F6E05E; color: #854F0B; font-weight: 600; }
+
+/* TOC */
+.toc { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px 24px; margin-bottom: 40px; }
+.toc-title { font-size: 12px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.toc-list li a { text-decoration: none; color: #0D4774; font-size: 13px; font-weight: 500; }
+.toc-list li a:hover { text-decoration: underline; }
+.toc-list li { display: flex; align-items: center; gap: 8px; }
+.toc-num { font-size: 11px; color: #B0B0B0; font-weight: 600; min-width: 18px; }
+
+/* SECTIONS */
+.section { margin-bottom: 48px; }
+.section-anchor { display: block; position: relative; top: -20px; visibility: hidden; }
+.section-label { font-size: 11px; font-weight: 600; color: #C9A84C; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.section-title { font-size: 20px; font-weight: 700; color: #1A1A1A; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0; }
+
+/* BODY TEXT */
+p { color: #4A4A4A; margin-bottom: 12px; }
+p:last-child { margin-bottom: 0; }
+ul, ol { padding-left: 20px; color: #4A4A4A; }
+ul li, ol li { margin-bottom: 6px; }
+strong { color: #1A1A1A; font-weight: 600; }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 8px; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: #F8F9FA; font-size: 11px; font-weight: 600; color: #1A1A1A; padding: 10px 14px; border-bottom: 1px solid #E2E8F0; text-align: left; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid #F1F5F9; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:nth-child(even) { background: #FAFAFA; }
+tbody td { padding: 10px 14px; color: #4A4A4A; vertical-align: top; }
+tbody td strong { color: #1A1A1A; }
+code { background: #EBF4FF; color: #0D4774; font-size: 12px; padding: 1px 6px; border-radius: 4px; font-family: 'Menlo', 'Monaco', monospace; }
+
+/* KPI CARD ROW */
+.kpi-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.kpi-mini { flex: 1; min-width: 140px; background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; }
+.kpi-mini-val { font-size: 20px; font-weight: 700; color: #0D4774; font-variant-numeric: tabular-nums; }
+.kpi-mini-val.green { color: #0F6E56; }
+.kpi-mini-val.red { color: #A32D2D; }
+.kpi-mini-val.amber { color: #854F0B; }
+.kpi-mini-lbl { font-size: 11px; font-weight: 500; color: #718096; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* LAYOUT DIAGRAM */
+.layout-diagram { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px 24px; font-size: 12px; font-family: 'Menlo', 'Monaco', monospace; color: #4A4A4A; line-height: 1.8; white-space: pre; overflow-x: auto; }
+
+/* OPEN QUESTIONS */
+.oq-list { display: flex; flex-direction: column; gap: 10px; }
+.oq-item { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; }
+.oq-num { background: #EBF4FF; color: #0D4774; font-size: 11px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.oq-text { font-size: 13px; color: #1A1A1A; }
+.oq-text strong { color: #0D4774; }
+
+/* SUCCESS CRITERIA */
+.sc-list { display: flex; flex-direction: column; gap: 8px; }
+.sc-item { display: flex; align-items: flex-start; gap: 10px; background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #4A4A4A; }
+.sc-check { width: 18px; height: 18px; border: 2px solid #CBD5E0; border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+
+/* OUT OF SCOPE */
+.oos-list { display: flex; flex-direction: column; gap: 6px; }
+.oos-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #4A4A4A; padding: 8px 0; border-bottom: 1px solid #F1F5F9; }
+.oos-item:last-child { border-bottom: none; }
+.oos-x { color: #A32D2D; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+
+/* ALERT CALLOUT */
+.callout { border-radius: 8px; padding: 12px 16px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; margin-top: 12px; }
+.callout.warn { background: #FAEEDA; border: 1px solid #FAC775; color: #854F0B; }
+.callout.info { background: #EBF4FF; border: 1px solid #B5D4F4; color: #185FA5; }
+.callout-icon { flex-shrink: 0; font-size: 15px; }
+
+/* FOOTER */
+.doc-footer { border-top: 1px solid #E2E8F0; padding-top: 24px; margin-top: 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.footer-left { font-size: 12px; color: #B0B0B0; }
+.footer-badge { background: #0D4774; color: #fff; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 4px 12px; letter-spacing: 0.03em; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- DOCUMENT HEADER -->
+  <div class="doc-header">
+    <div class="doc-title">Utilization Report — PRD</div>
+    <div class="doc-meta">
+      <div class="meta-chip"><strong>Author:</strong> David Jung</div>
+      <div class="meta-chip"><strong>Date:</strong> April 24, 2026</div>
+      <div class="meta-chip status-draft">⚡ Draft</div>
+      <div class="meta-chip"><strong>Report:</strong> Sigma Workbook</div>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ul class="toc-list">
+      <li><span class="toc-num">01</span><a href="#purpose">Purpose</a></li>
+      <li><span class="toc-num">02</span><a href="#audience">Audience &amp; Use Cases</a></li>
+      <li><span class="toc-num">03</span><a href="#kpis">Key Metrics (KPI Tiles)</a></li>
+      <li><span class="toc-num">04</span><a href="#layout">Layout &amp; Structure</a></li>
+      <li><span class="toc-num">05</span><a href="#filters">Filters &amp; Controls</a></li>
+      <li><span class="toc-num">06</span><a href="#data">Data Requirements</a></li>
+      <li><span class="toc-num">07</span><a href="#refresh">Refresh &amp; Performance</a></li>
+      <li><span class="toc-num">08</span><a href="#oos">Out of Scope</a></li>
+      <li><span class="toc-num">09</span><a href="#questions">Open Questions</a></li>
+      <li><span class="toc-num">10</span><a href="#success">Success Criteria</a></li>
+    </ul>
+  </div>
+
+  <!-- 01 PURPOSE -->
+  <div class="section">
+    <a class="section-anchor" id="purpose"></a>
+    <div class="section-label">01</div>
+    <div class="section-title">Purpose</div>
+    <p>The Utilization Report gives facility operators a clear picture of how their space is performing — what's booked, what's empty, and what it's costing them. It enables operators to answer: <em>"When are my prime hours being wasted, and how much money am I leaving on the table?"</em></p>
+    <p>Internally, Bond uses it to demonstrate platform value, support upsell conversations, and surface underperforming facilities before they churn. This report is a level-up from the prior Qlik version, adding forward-looking projections, prime/non-prime segmentation, and an interactive prime hours definition layer.</p>
+  </div>
+
+  <!-- 02 AUDIENCE -->
+  <div class="section">
+    <a class="section-anchor" id="audience"></a>
+    <div class="section-label">02</div>
+    <div class="section-title">Audience &amp; Use Cases</div>
+    <ul>
+      <li><strong>Facility operators</strong> — primary users. Weekly or monthly review of their own facility's performance. Looking for patterns (dead Tuesday afternoons, overbooked Friday evenings) and revenue opportunities.</li>
+      <li><strong>Bond CS team</strong> — uses during customer success reviews to show operators their utilization trends and prompt conversations about schedule optimization.</li>
+      <li><strong>Bond internal ops/exec</strong> — periodic benchmarking across facilities. Not the primary audience; the detail table supports export for this use case.</li>
+    </ul>
+  </div>
+
+  <!-- 03 KPI TILES -->
+  <div class="section">
+    <a class="section-anchor" id="kpis"></a>
+    <div class="section-label">03</div>
+    <div class="section-title">Key Metrics (KPI Tiles)</div>
+
+    <div class="kpi-preview">
+      <div class="kpi-mini"><div class="kpi-mini-val">68.4%</div><div class="kpi-mini-lbl">Utilization %</div></div>
+      <div class="kpi-mini"><div class="kpi-mini-val green">$94.70</div><div class="kpi-mini-lbl">Revenue / Booked Hr</div></div>
+      <div class="kpi-mini"><div class="kpi-mini-val red">$18,420</div><div class="kpi-mini-lbl">Opportunity Cost</div></div>
+      <div class="kpi-mini"><div class="kpi-mini-val">2,847</div><div class="kpi-mini-lbl">Total Booked Hours</div></div>
+      <div class="kpi-mini"><div class="kpi-mini-val red">23</div><div class="kpi-mini-lbl">Overbooking Events</div></div>
+    </div>
+
+    <br>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Definition</th>
+            <th>Source</th>
+            <th>Good / Bad</th>
+            <th>Format</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Utilization %</strong></td>
+            <td>Booked hours ÷ Available hours (excl. closed periods)</td>
+            <td>hourly utilization model</td>
+            <td>Higher = better; &gt;70% prime = good</td>
+            <td><code>0.0%</code></td>
+          </tr>
+          <tr>
+            <td><strong>Revenue per Booked Hour</strong></td>
+            <td>Total revenue ÷ booked hours in period</td>
+            <td>hourly model + revenue join</td>
+            <td>Higher = better; benchmark TBD</td>
+            <td><code>$0,000.00</code></td>
+          </tr>
+          <tr>
+            <td><strong>Opportunity Cost</strong></td>
+            <td>Empty hours × avg rate per hour</td>
+            <td>hourly model</td>
+            <td>Lower = better; high # = action needed</td>
+            <td><code>$0,000</code></td>
+          </tr>
+          <tr>
+            <td><strong>Total Booked Hours</strong></td>
+            <td>Sum of all booked slot-hours in period</td>
+            <td>hourly model</td>
+            <td>Directional; compare vs prior period</td>
+            <td><code>0,000 hrs</code></td>
+          </tr>
+          <tr>
+            <td><strong>Overutilization Events</strong></td>
+            <td>Count of slots with &gt;1 booking (double-booked)</td>
+            <td>hourly model</td>
+            <td>0 = ideal; any positive = alert</td>
+            <td><code>0</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 04 LAYOUT -->
+  <div class="section">
+    <a class="section-anchor" id="layout"></a>
+    <div class="section-label">04</div>
+    <div class="section-title">Layout &amp; Structure</div>
+
+    <p><strong>Tab structure:</strong></p>
+    <ol>
+      <li><strong>Utilization Summary</strong> ← primary tab; operators live here</li>
+      <li><strong>Revenue Analysis</strong> ← revenue per hour, opportunity cost drill-down</li>
+      <li><strong>Raw Data</strong> ← 5-minute model; for operators who want slot-level export</li>
+    </ol>
+
+    <br>
+    <p><strong>Utilization Summary tab layout:</strong></p>
+    <div class="layout-diagram">[Section header: 📊 + title + subtitle]
+[KPI tiles row: Util% | Rev/Hr | Opp Cost | Booked Hrs | Overbooking Events]
+[Filter bar: Date Range | Org | Facility | Activity/Sport | Day Type | Weekday/Weekend | Prime/Non-Prime | Reset]
+[Prime Hours Definition — Sigma Input Table (collapsible): facility → prime start → prime end]
+────────────────────────────────────────────────────────────────────
+[Heatmap: Day of Week × Hour of Day — color = utilization %, tooltip = revenue]
+[Bar chart: Booked vs Available hours by day (stacked, future dates projected)]
+────────────────────────────────────────────────────────────────────
+[Detail table: one row per facility/org]
+  Columns: Org | Facility | Available Hrs | Booked Hrs | Util% | Prime Util% | Non-Prime Util% | Revenue | Rev/Hr | Opp Cost</div>
+
+    <br>
+    <p><strong>Revenue Analysis tab layout:</strong></p>
+    <div class="layout-diagram">[KPI tiles: Total Revenue | Rev/Hr | RevPAH | YoY change]
+[Line chart: Daily revenue actual vs projected]
+[Bar chart: Revenue by activity type]
+[Table: Revenue breakdown by hour bucket]</div>
+  </div>
+
+  <!-- 05 FILTERS -->
+  <div class="section">
+    <a class="section-anchor" id="filters"></a>
+    <div class="section-label">05</div>
+    <div class="section-title">Filters &amp; Controls</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Date Range</strong></td>
+            <td>Date range picker</td>
+            <td>This month</td>
+            <td>Must support future dates (projections)</td>
+          </tr>
+          <tr>
+            <td><strong>Organization</strong></td>
+            <td>Multi-select dropdown</td>
+            <td>All</td>
+            <td>Filters to parent org; cascades to facility</td>
+          </tr>
+          <tr>
+            <td><strong>Parent Organization</strong></td>
+            <td>Multi-select</td>
+            <td>All</td>
+            <td>Separate from org for rollup view</td>
+          </tr>
+          <tr>
+            <td><strong>Facility</strong></td>
+            <td>Multi-select</td>
+            <td>All</td>
+            <td>Depends on org filter</td>
+          </tr>
+          <tr>
+            <td><strong>Activity / Sport</strong></td>
+            <td>Multi-select</td>
+            <td>All</td>
+            <td>Basketball, Tennis, Soccer, etc.</td>
+          </tr>
+          <tr>
+            <td><strong>Day Type</strong></td>
+            <td>Toggle: Prime / Non-Prime / All</td>
+            <td>All</td>
+            <td>Requires prime hours input table</td>
+          </tr>
+          <tr>
+            <td><strong>Weekday / Weekend</strong></td>
+            <td>Toggle</td>
+            <td>All</td>
+            <td>Mon–Fri vs Sat–Sun</td>
+          </tr>
+          <tr>
+            <td><strong>Day of Week</strong></td>
+            <td>Multi-select</td>
+            <td>All</td>
+            <td>For granular day patterns</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info" style="margin-top:16px;">
+      <div class="callout-icon">⚡</div>
+      <div><strong>Prime Hours Input Table</strong> (Sigma native Input Table element) — Columns: <code>facility_id</code>, <code>facility_name</code>, <code>prime_start</code>, <code>prime_end</code>. Editable in-workbook by operators or Bond CS. Default values seeded from a Snowflake reference table if available; otherwise manual entry. Used to compute <code>is_prime</code> flag on all rows in the hourly model join.</div>
+    </div>
+  </div>
+
+  <!-- 06 DATA REQUIREMENTS -->
+  <div class="section">
+    <a class="section-anchor" id="data"></a>
+    <div class="section-label">06</div>
+    <div class="section-title">Data Requirements</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Source Model</th>
+            <th>Transformation</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>slot_date</code></td><td><code>fct_utilization_hourly</code></td><td>None</td><td>Date of slot</td></tr>
+          <tr><td><code>slot_hour</code></td><td><code>fct_utilization_hourly</code></td><td>None</td><td>Hour bucket (0–23)</td></tr>
+          <tr><td><code>facility_id</code></td><td><code>fct_utilization_hourly</code></td><td>None</td><td>Join to dim_facility</td></tr>
+          <tr><td><code>facility_name</code></td><td><code>dim_facility</code></td><td>None</td><td>Display name</td></tr>
+          <tr><td><code>org_id</code></td><td><code>dim_facility</code></td><td>None</td><td>FK to dim_organization</td></tr>
+          <tr><td><code>org_name</code></td><td><code>dim_organization</code></td><td>None</td><td>—</td></tr>
+          <tr><td><code>parent_org_id</code></td><td><code>dim_organization</code></td><td>None</td><td>For rollup</td></tr>
+          <tr><td><code>activity_type</code></td><td><code>fct_utilization_hourly</code></td><td>None</td><td>Sport/activity category</td></tr>
+          <tr><td><code>is_booked</code></td><td><code>fct_utilization_hourly</code></td><td>Derived</td><td>1 if ≥1 booking in slot</td></tr>
+          <tr><td><code>booking_count</code></td><td><code>fct_utilization_hourly</code></td><td>Count</td><td>&gt;1 = overutilization event</td></tr>
+          <tr><td><code>revenue</code></td><td><code>fct_utilization_hourly</code></td><td>Sum</td><td>Revenue for booked slot</td></tr>
+          <tr><td><code>is_available</code></td><td><code>fct_utilization_hourly</code></td><td>Derived</td><td>Excludes facility closed hours</td></tr>
+          <tr><td><code>is_future</code></td><td>Derived in Sigma</td><td><code>slot_date &gt; today()</code></td><td>Flag for projection vs actuals</td></tr>
+          <tr><td><code>is_prime</code></td><td>Derived via Input Table join</td><td>Join on facility_id + hour</td><td>Requires Sigma Input Table</td></tr>
+          <tr><td><code>avg_rate_per_hour</code></td><td><code>fct_utilization_hourly</code> or <code>dim_facility</code></td><td>—</td><td>For opportunity cost calc</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info" style="margin-top:16px;">
+      <div class="callout-icon">📐</div>
+      <div>
+        <strong>Opportunity cost formula:</strong><br>
+        <code>Opportunity Cost = SUM(CASE WHEN is_booked = 0 AND is_available = 1 THEN avg_rate_per_hour ELSE 0 END)</code>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:10px;">
+      <div class="callout-icon">⚠️</div>
+      <div><strong>Overutilization:</strong> Report rows where <code>booking_count &gt; 1</code> as a separate KPI and flag in the detail table. Do <strong>NOT</strong> deduplicate — show true double-booking count.</div>
+    </div>
+
+    <div class="callout warn" style="margin-top:10px;">
+      <div class="callout-icon">⚠️</div>
+      <div><strong>5-minute model (<code>fct_utilization_5m</code>):</strong> Feed the Raw Data tab only. Same schema as hourly but at 5m grain. Heavy — do not use for summary calculations. Consider a row limit or pre-aggregated materialization for Sigma query performance.</div>
+    </div>
+  </div>
+
+  <!-- 07 REFRESH -->
+  <div class="section">
+    <a class="section-anchor" id="refresh"></a>
+    <div class="section-label">07</div>
+    <div class="section-title">Refresh &amp; Performance</div>
+    <ul>
+      <li><strong>Cadence:</strong> Daily (overnight dbt run); data as of previous day EOD</li>
+      <li><strong>Latency:</strong> ≤24 hours; no real-time requirement</li>
+    </ul>
+    <br>
+    <p><strong>Performance concerns:</strong></p>
+    <ul>
+      <li>Hourly model: should be fine for summary queries with proper partitioning by date</li>
+      <li>5-minute model: <strong>high row count</strong> — Raw Data tab must paginate or limit to a short date range by default (suggest max 7-day window on load)</li>
+      <li>Prime hours Input Table join adds a cross-join per facility — keep facility count reasonable; index on <code>facility_id</code></li>
+    </ul>
+  </div>
+
+  <!-- 08 OUT OF SCOPE -->
+  <div class="section">
+    <a class="section-anchor" id="oos"></a>
+    <div class="section-label">08</div>
+    <div class="section-title">Out of Scope</div>
+    <div class="oos-list">
+      <div class="oos-item"><span class="oos-x">✕</span> Real-time or sub-hourly utilization for the main report (that's the 5m raw tab only)</div>
+      <div class="oos-item"><span class="oos-x">✕</span> Pricing optimization recommendations (out of scope for v1)</div>
+      <div class="oos-item"><span class="oos-x">✕</span> Cross-facility benchmarking rankings visible to operators (internal use only)</div>
+      <div class="oos-item"><span class="oos-x">✕</span> Integration with external booking platforms not in Bond's system</div>
+      <div class="oos-item"><span class="oos-x">✕</span> Staff scheduling or labor cost analysis</div>
+    </div>
+  </div>
+
+  <!-- 09 OPEN QUESTIONS -->
+  <div class="section">
+    <a class="section-anchor" id="questions"></a>
+    <div class="section-label">09</div>
+    <div class="section-title">Open Questions</div>
+    <div class="oq-list">
+      <div class="oq-item">
+        <div class="oq-num">1</div>
+        <div class="oq-text"><strong>Prime hours seeding</strong> — Does a reference table exist in Snowflake with default prime hours per facility, or will the Input Table start empty and require manual entry?</div>
+      </div>
+      <div class="oq-item">
+        <div class="oq-num">2</div>
+        <div class="oq-text"><strong>Qlik reference</strong> — David has a screenshot of the prior Qlik version to review. Some fields may exist there that should carry over.</div>
+      </div>
+      <div class="oq-item">
+        <div class="oq-num">3</div>
+        <div class="oq-text"><strong>avg_rate_per_hour source</strong> — Is this on <code>dim_facility</code>, derived from historical bookings, or a configurable input?</div>
+      </div>
+      <div class="oq-item">
+        <div class="oq-num">4</div>
+        <div class="oq-text"><strong>Future projections</strong> — For future dates, are we showing "confirmed bookings only" or "confirmed + recurring"? How do we handle cancellations?</div>
+      </div>
+      <div class="oq-item">
+        <div class="oq-num">5</div>
+        <div class="oq-text"><strong>Overutilization display</strong> — Should double-booked slots count as 100% utilized (capped) or &gt;100% (literal)? Marc may have a preference.</div>
+      </div>
+      <div class="oq-item">
+        <div class="oq-num">6</div>
+        <div class="oq-text"><strong>Operator access scope</strong> — Can operators see all facilities in their org, or only facilities they manage? Does this need row-level security in Sigma?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 SUCCESS CRITERIA -->
+  <div class="section">
+    <a class="section-anchor" id="success"></a>
+    <div class="section-label">10</div>
+    <div class="section-title">Success Criteria</div>
+    <div class="sc-list">
+      <div class="sc-item"><div class="sc-check"></div>Utilization % matches manual calculation from a known test facility for a known date range</div>
+      <div class="sc-item"><div class="sc-check"></div>Prime vs. non-prime split is configurable per facility via Input Table and changes KPIs correctly</div>
+      <div class="sc-item"><div class="sc-check"></div>Future dates show projected revenue from confirmed bookings; historical shows actuals</div>
+      <div class="sc-item"><div class="sc-check"></div>Opportunity cost figure is validated against a known empty-slot scenario</div>
+      <div class="sc-item"><div class="sc-check"></div>Overutilization events count matches a manual audit of double-booked slots</div>
+      <div class="sc-item"><div class="sc-check"></div>5m raw data tab loads a 7-day window in &lt;10 seconds</div>
+      <div class="sc-item"><div class="sc-check"></div>Operators can filter to their org without seeing other orgs' data (pending RLS decision)</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <div class="footer-left">Bond Sports · Utilization Report PRD · April 24, 2026</div>
+    <div class="footer-badge">Bond Internal</div>
+  </div>
+
+</div>
+</body>
+</html>
