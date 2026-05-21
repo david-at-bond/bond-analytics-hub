@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Bond Snowflake Data Share: Setup & Cost Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bond-navy:#0F1923;
+      --bond-gold:#C9A84C;
+      --bond-primary:#0D4774;
+      --bond-text:#1A1A1A;
+      --bond-text-body:#4A4A4A;
+      --bond-surface:#FFFFFF;
+      --bond-surface-subtle:#F8F9FA;
+      --bond-border:#E2E8F0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--bond-text);
+      background:var(--bond-surface-subtle);
+      margin:0;
+      letter-spacing:-0.01em;
+    }
+    .wrap{max-width:760px;margin:0 auto;padding:48px 24px 96px;background:var(--bond-surface)}
+    h1{
+      font-size:24px;font-weight:700;letter-spacing:-0.02em;
+      color:var(--bond-navy);
+      margin:0 0 8px;
+      text-wrap:balance;
+    }
+    .lede{color:var(--bond-text-body);font-size:14px;margin:0 0 32px;text-wrap:pretty}
+    h2{
+      font-size:18px;font-weight:600;letter-spacing:-0.02em;
+      color:var(--bond-navy);
+      margin:40px 0 12px;
+    }
+    h3{font-size:16px;font-weight:600;color:var(--bond-text);margin:24px 0 8px}
+    p,li{font-size:14px;line-height:1.6;color:var(--bond-text-body);text-wrap:pretty}
+    ul{padding-left:20px;margin:8px 0 16px}
+    li{margin:4px 0}
+    strong{color:var(--bond-text);font-weight:600}
+    .callout{
+      background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;
+      padding:14px 16px;margin:16px 0;
+      font-size:13px;color:#185FA5;
+    }
+    .callout.warn{background:#FAEEDA;border-color:#FAC775;color:#854F0B}
+    table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:13px}
+    th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--bond-border)}
+    th{background:var(--bond-surface-subtle);color:var(--bond-navy);font-weight:600;font-size:12px;letter-spacing:0.02em;text-transform:uppercase}
+    td.num{font-variant-numeric:tabular-nums;text-align:right}
+    .scenario{
+      border:1px solid var(--bond-border);border-radius:10px;
+      padding:16px 18px;margin:12px 0;
+      background:var(--bond-surface);
+    }
+    .scenario h3{margin-top:0}
+    .price{
+      display:inline-block;background:var(--bond-navy);color:#fff;
+      font-weight:600;padding:4px 10px;border-radius:999px;font-size:12px;
+      font-variant-numeric:tabular-nums;
+    }
+    .price.gold{background:var(--bond-gold);color:var(--bond-navy)}
+    hr{border:0;border-top:1px solid var(--bond-border);margin:32px 0}
+    code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      background:var(--bond-surface-subtle);
+      padding:1px 6px;border-radius:4px;font-size:12px;color:var(--bond-primary);
+    }
+    footer{color:var(--bond-text-body);font-size:12px;margin-top:48px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <h1>Bond Snowflake Data Share: Setup & Cost Guide</h1>
+    <p class="lede">How to get your Bond data flowing into your own analytics stack via Snowflake — and what (if anything) it'll cost you. Two scenarios are covered: (1) you already have Snowflake, or (2) you need a daily copy of your data in another platform.</p>
+
+    <h2>What this is</h2>
+    <p>Bond publishes your organization's data as a live, read-only Snowflake share. Once enabled, 12 views in the <code>ANALYTICS_SHARED</code> schema appear as a database inside your Snowflake account and refresh automatically as your data updates — typically within minutes. There's no ETL job to build, no daily file to manage, and no extra fee from Bond.</p>
+    <p>Bond's Snowflake account is hosted on <strong>AWS US East (Ohio)</strong> — region code <code>us-east-2</code>. This only matters in one specific case: if you're unloading the data to your own cloud storage (S3/GCS/Azure Blob) on the way to a non-Snowflake platform, a same-region bucket avoids egress fees and a cross-region one adds a small one.</p>
+
+    <h2>Does this apply to you?</h2>
+    <p>Pick whichever row describes your situation:</p>
+
+    <table>
+      <thead>
+        <tr><th>If your data lives in…</th><th>How you access Bond data</th><th>Cost to access</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Snowflake</strong> — any cloud, any region</td>
+          <td>The share appears as a database in your account — query it directly, no copy required. Cross-region or cross-cloud customers are handled by Snowflake's built-in replication, set up on Bond's side.</td>
+          <td><strong>$0.</strong> You only pay for the compute of your own analytics or transformations on top.</td>
+        </tr>
+        <tr>
+          <td><strong>Another platform</strong> — Redshift, BigQuery, Databricks, a BI tool's native connector, etc.</td>
+          <td>You need a daily copy of the data in your destination.</td>
+          <td>See the cost matrix below — <strong>typically $1–$30/month</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>How to enable the share</h2>
+    <p>The setup is the same regardless of which row above describes you — the share is the entry point in both cases. Your Bond CSM handles our side; this section covers what we need from you and what you'll run on yours.</p>
+
+    <h3>1. Make sure you have a Snowflake account</h3>
+    <p>Any Snowflake edition works — Standard is the entry-level on consumption pricing and is more than enough for accessing the share. If you don't have a Snowflake account yet, sign up at <a href="https://signup.snowflake.com">signup.snowflake.com</a>. Choose AWS, and if you're creating an account specifically to access Bond data, pick the <code>us-east-2</code> (Ohio) region to keep things simple.</p>
+
+    <h3>2. Send your CSM two pieces of information</h3>
+    <ul>
+      <li>Your Snowflake <strong>account identifier</strong> in <code>ORG_NAME.ACCOUNT_NAME</code> form</li>
+      <li>Your Snowflake <strong>region</strong> (e.g., <code>AWS_US_EAST_2</code>)</li>
+    </ul>
+    <p>You can find both by running this in your Snowflake account:</p>
+    <pre style="background:var(--bond-surface-subtle);border:1px solid var(--bond-border);border-radius:6px;padding:12px;font-size:12px;overflow-x:auto;color:var(--bond-text)"><code>SELECT
+  CURRENT_ORGANIZATION_NAME() || '.' || CURRENT_ACCOUNT_NAME() AS account_identifier,
+  CURRENT_REGION() AS region;</code></pre>
+    <p>Your CSM will reply confirming your account has been added to the share. You can then move on to step 3 — no further info needed from us.</p>
+
+    <h3>3. Create the database from the listing</h3>
+    <p>Bond's listing ID is <code>GZT1Z25AYVC</code>. Run this once in your Snowflake account:</p>
+    <pre style="background:var(--bond-surface-subtle);border:1px solid var(--bond-border);border-radius:6px;padding:12px;font-size:12px;overflow-x:auto;color:var(--bond-text)"><code>SHOW AVAILABLE LISTINGS;
+CREATE DATABASE bond_data FROM LISTING 'GZT1Z25AYVC';</code></pre>
+    <p>You can name the database whatever you like — <code>bond_data</code> is just a suggestion.</p>
+
+    <h3>4. Query the share to confirm it's working</h3>
+    <p>The shared views live in the <code>ANALYTICS_SHARED</code> schema. Each view is automatically filtered to your organization — no need to add <code>WHERE organization_id =</code> filters.</p>
+    <pre style="background:var(--bond-surface-subtle);border:1px solid var(--bond-border);border-radius:6px;padding:12px;font-size:12px;overflow-x:auto;color:var(--bond-text)"><code>SELECT * FROM bond_data.ANALYTICS_SHARED.CUSTOMERS LIMIT 10;</code></pre>
+
+    <h3>5. Grant access to your team</h3>
+    <pre style="background:var(--bond-surface-subtle);border:1px solid var(--bond-border);border-radius:6px;padding:12px;font-size:12px;overflow-x:auto;color:var(--bond-text)"><code>GRANT IMPORTED PRIVILEGES ON DATABASE bond_data TO ROLE your_analytics_role;</code></pre>
+    <p>The share refreshes automatically as Bond's data updates — typically within minutes.</p>
+
+    <div class="callout warn">
+      <strong>If you see "Shared data not available"</strong> right after creating the database (especially if your Snowflake account is in a different region from ours), give it 10–30 minutes for replication to complete. If the error persists, reach out to your Bond CSM and we'll work with Snowflake support to resolve.
+    </div>
+
+    <div class="callout">
+      <strong>If you're already on Snowflake, you can stop reading here.</strong> The data is already "in" your warehouse the moment your CSM grants the share. There's no ETL, no movement, no daily job, no extra fee — even if your Snowflake account is on a different cloud or region than ours. The rest of this guide covers the second scenario only: moving a copy to a non-Snowflake platform.
+    </div>
+
+    <h2>The short answer on cost (for the "moving to another platform" case)</h2>
+    <p>For most organizations, a full daily export of your Bond data into another platform costs <strong>a few cents per day</strong> in Snowflake compute — typically <strong>$1–$30 per month</strong>, depending on your size and how you run it. There are no storage charges on shared data, and no Bond-side fees.</p>
+    <p>You're paying for two things only:</p>
+    <ul>
+      <li><strong>Compute (credits)</strong> — every time you query or unload from the share, you spin up a virtual warehouse. Snowflake bills per second with a 60-second minimum each time the warehouse resumes.</li>
+      <li><strong>Egress</strong> — only if the destination is in a different cloud region from Bond's (<code>us-east-2</code>). Same-region unloads are free.</li>
+    </ul>
+    <p>You do <strong>not</strong> pay for storage of the shared tables (Bond pays this), a Snowflake Enterprise tier (Standard On-Demand is enough), or anything to Bond — the share itself is included with your Bond plan.</p>
+
+    <h2>How much data is "all of it"?</h2>
+    <p>The 12 shared tables grow roughly in proportion to your customer count and transactional activity. Here's what a daily full export looks like across three reference sizes:</p>
+
+    <table>
+      <thead>
+        <tr><th>Org size</th><th>Customers</th><th>Rows / day</th><th>Uncompressed</th><th>Compressed</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Small</strong> — single facility</td><td class="num">~5,000</td><td class="num">~360,000</td><td class="num">~580 MB</td><td class="num">~80–130 MB</td></tr>
+        <tr><td><strong>Medium</strong> — established multi-program</td><td class="num">~20,000</td><td class="num">~1.5 million</td><td class="num">~2.5 GB</td><td class="num">~350–500 MB</td></tr>
+        <tr><td><strong>Large</strong> — multi-facility enterprise</td><td class="num">~75,000</td><td class="num">~3.7 million</td><td class="num">~5.7 GB</td><td class="num">~800 MB–1.2 GB</td></tr>
+      </tbody>
+    </table>
+
+    <p>By a wide margin, the biggest contributor is <code>ACTIONS</code> — a transactional ledger that records every revenue, payment, and deferred-revenue event for your organization (used for financial reconciliation and reporting). It accounts for roughly two-thirds of the total volume at every size. Because it's transactional, pulling only new and changed rows each day shrinks it dramatically — see <em>Tips</em> below. Organizations with heavy membership billing or payment-plan-heavy programs can run 3–5× larger than the averages above.</p>
+
+    <h2>Three ways to run it</h2>
+    <p>Pick one approach. Your monthly cost depends on which one you use <strong>and</strong> how much data your organization generates.</p>
+
+    <ul>
+      <li><strong>Same-region unload</strong> — a scheduled <code>COPY INTO @stage</code> drops CSV or Parquet files into your S3, GCS, or Azure Blob bucket, in the same cloud region as Bond's Snowflake account.</li>
+      <li><strong>Cross-region unload</strong> — same idea, but the destination is in a different cloud or region (adds a small egress fee).</li>
+      <li><strong>JDBC / ODBC connector</strong> — an off-the-shelf tool (Fivetran-style, a BI tool's native connector, a custom script) pulls rows over the wire. Easiest to set up; warehouse stays running longer.</li>
+    </ul>
+
+    <h2>Estimated monthly Snowflake cost</h2>
+
+    <table>
+      <thead>
+        <tr><th>Approach</th><th>Small (~5k cust.)</th><th>Medium (~20k cust.)</th><th>Large (~75k cust.)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Same-region unload</td><td class="num">$1–$2</td><td class="num">$3–$5</td><td class="num">$6–$10</td></tr>
+        <tr><td>Cross-region unload</td><td class="num">$1–$3</td><td class="num">$3–$6</td><td class="num">$7–$12</td></tr>
+        <tr><td>JDBC / ODBC connector</td><td class="num">$4–$8</td><td class="num">$10–$20</td><td class="num">$20–$40</td></tr>
+      </tbody>
+    </table>
+
+    <p>The small tier is still essentially floored by Snowflake's 60-second warehouse minimum — at that volume you're paying for the warm-up, not the work. Medium and large costs scale primarily with how much of the <code>ACTIONS</code> ledger needs to move each day, which is why an incremental approach (next section) cuts these numbers further.</p>
+
+    <p style="font-size:13px;color:var(--bond-text-body)"><em>Note: organizations with unusually heavy transactional volume (very large membership bases on payment plans, very high event throughput) can land 2–3× higher than the figures above. At the extreme high end — roughly 20 GB/day on <code>ACTIONS</code> alone — plan for ~$25–50/month on same-region unloads, or reach out to your Bond CSM for a tailored estimate.</em></p>
+
+    <h2>Tips to keep your bill minimal</h2>
+    <ul>
+      <li><strong>Use a single X-Small warehouse</strong> for daily exports — anything bigger is wasted on this volume.</li>
+      <li><strong>Run all tables in one session</strong> so you pay the 60-second warehouse minimum once, not twelve times.</li>
+      <li><strong>Set auto-suspend to 60 seconds</strong> on the export warehouse.</li>
+      <li><strong>Go incremental on <code>ACTIONS</code></strong> — filter on <code>ACTION_TIME &gt;= DATEADD(day, -1, CURRENT_DATE())</code>. <code>ACTIONS</code> is two-thirds of your volume; pulling only new and changed rows can cut total daily bytes by 5–10× and meaningfully reduce medium- and large-tier compute. For the other 11 tables, filter on <code>_UPDATED_AT</code>.</li>
+      <li><strong>Co-locate</strong> your Snowflake account in the same cloud region as Bond's if you have a choice — eliminates egress entirely.</li>
+    </ul>
+
+    <h2>What this guide does not cover</h2>
+    <ul>
+      <li>Costs of the destination platform (your warehouse, BI tool, or third-party connector vendor)</li>
+      <li>Ad-hoc analytics workloads — those are typically much larger than a daily export, and cost depends on how heavily your team queries the data</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>One thing to double-check:</strong> Snowflake's per-credit pricing varies slightly by cloud, region, and edition. The numbers in this guide assume Standard Edition On-Demand on AWS US East (Ohio) at $2.00/credit. Your effective rate may be a few cents higher or lower.
+    </div>
+
+    <hr>
+    <footer>Have questions about your specific volume or setup? Reach out to your Bond CSM and we'll size it for your organization.</footer>
+
+  </div>
+</body>
+</html>

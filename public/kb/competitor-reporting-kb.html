@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitor Reporting KB — Bond Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bond-navy:       #0F1923;
+    --bond-navy-mid:   #1A2940;
+    --bond-gold:       #C9A84C;
+    --bond-gold-light: #E8C97A;
+    --bo-primary:      #0D4774;
+    --bo-text:         #1A1A1A;
+    --bo-text-body:    #4A4A4A;
+    --bo-text-disabled:#B0B0B0;
+    --bond-surface:    #FFFFFF;
+    --bond-surface-subtle: #F8F9FA;
+    --bond-border:     #E2E8F0;
+    --green-text:      #0F6E56;
+    --green-bg:        #E1F5EE;
+    --green-border:    #9FE1CB;
+    --red-text:        #993C1D;
+    --red-bg:          #FAECE7;
+    --red-border:      #F5C4B3;
+    --blue-text:       #185FA5;
+    --blue-bg:         #E6F1FB;
+    --blue-border:     #B5D4F4;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bond-surface-subtle);
+    color: var(--bo-text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .page-header {
+    background: var(--bond-navy);
+    padding: 24px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: var(--bond-gold);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; color: var(--bond-navy);
+  }
+  .header-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+  .header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .header-badge {
+    background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3);
+    color: var(--bond-gold); font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* Tab nav */
+  .tab-nav {
+    background: var(--bond-navy-mid);
+    padding: 0 40px;
+    display: flex; gap: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    overflow-x: auto; scrollbar-width: none;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 14px 20px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    transition-property: color, border-color; transition-duration: 150ms;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+  .tab-btn.active { color: var(--bond-gold); border-bottom-color: var(--bond-gold); }
+
+  /* Content */
+  .content { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Competitor hero */
+  .comp-hero {
+    background: var(--bond-navy);
+    border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  }
+  .comp-name { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.02em; line-height: 1.2; }
+  .comp-niche { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+  .comp-verdict { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+  .verdict-chip {
+    font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
+  }
+  .verdict-chip.tier-1 { background: rgba(201,168,76,0.2); color: var(--bond-gold); border: 1px solid rgba(201,168,76,0.4); }
+  .verdict-chip.tier-2 { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.12); }
+  .verdict-chip.tier-3 { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.08); }
+  .verdict-label { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 500; }
+
+  /* Section */
+  .section { margin-bottom: 24px; }
+  .section-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--bo-text-disabled); margin-bottom: 12px;
+  }
+
+  /* Reports */
+  .reports-card { background: var(--bond-surface); border: 1px solid var(--bond-border); border-radius: 12px; padding: 24px; }
+  .reports-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+  .reports-list li { font-size: 14px; color: var(--bo-text-body); padding-left: 16px; position: relative; line-height: 1.5; text-wrap: pretty; }
+  .reports-list li::before { content: '→'; position: absolute; left: 0; color: var(--bo-primary); font-weight: 600; }
+
+  /* Strengths / Weaknesses */
+  .sw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .sw-card { border-radius: 12px; padding: 20px 24px; border: 1px solid; }
+  .sw-card.strengths { background: var(--green-bg); border-color: var(--green-border); }
+  .sw-card.weaknesses { background: var(--red-bg); border-color: var(--red-border); }
+  .sw-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+  .sw-card.strengths .sw-label { color: var(--green-text); }
+  .sw-card.weaknesses .sw-label { color: var(--red-text); }
+  .sw-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .sw-list li { font-size: 13px; color: var(--bo-text-body); padding-left: 18px; position: relative; line-height: 1.5; text-wrap: pretty; }
+  .sw-card.strengths .sw-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green-text); font-weight: 700; }
+  .sw-card.weaknesses .sw-list li::before { content: '✕'; position: absolute; left: 0; color: var(--red-text); font-weight: 700; }
+
+  /* Bond comparison */
+  .bond-compare {
+    background: var(--bond-navy);
+    border-radius: 12px; padding: 24px; margin-bottom: 24px;
+  }
+  .bond-compare-header {
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--bond-gold); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bond-compare-header .b-logo {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: var(--bond-gold); color: var(--bond-navy);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .bond-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .bond-col-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .bond-col-label.stronger { color: var(--bond-gold); }
+  .bond-col-label.competes { color: rgba(255,255,255,0.35); }
+  .bond-compare-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .bond-compare-list li { font-size: 13px; color: rgba(255,255,255,0.65); padding-left: 18px; position: relative; line-height: 1.5; text-wrap: pretty; }
+  .bond-stronger-list li::before { content: '↑'; position: absolute; left: 0; color: var(--bond-gold); font-weight: 700; }
+  .bond-competes-list li::before { content: '—'; position: absolute; left: 0; color: rgba(255,255,255,0.25); }
+
+  /* Callout */
+  .callout {
+    background: var(--blue-bg); border: 1px solid var(--blue-border); border-radius: 12px;
+    padding: 18px 22px; font-size: 13px; color: var(--blue-text);
+    line-height: 1.6; text-wrap: pretty; margin-bottom: 24px;
+  }
+  .callout strong { font-weight: 700; }
+
+  /* Links */
+  .links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .link-card {
+    background: var(--bond-surface); border: 1px solid var(--bond-border);
+    border-radius: 10px; padding: 14px 18px; text-decoration: none;
+    display: flex; align-items: flex-start; gap: 12px;
+    transition-property: border-color, box-shadow; transition-duration: 150ms;
+  }
+  .link-card:hover { border-color: var(--bo-primary); box-shadow: 0 2px 8px rgba(13,71,116,0.08); }
+  .link-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--blue-bg); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .link-text { min-width: 0; }
+  .link-title { font-size: 13px; font-weight: 600; color: var(--bo-primary); line-height: 1.3; margin-bottom: 3px; text-wrap: balance; }
+  .link-domain { font-size: 11px; color: var(--bo-text-disabled); font-weight: 500; }
+
+  /* Summary table */
+  .summary-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bond-surface); border-radius: 12px;
+    overflow: hidden; border: 1px solid var(--bond-border); font-size: 13px;
+  }
+  .summary-table th {
+    background: var(--bond-navy); color: rgba(255,255,255,0.7);
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 12px 16px; text-align: left;
+  }
+  .summary-table td {
+    padding: 13px 16px; color: var(--bo-text-body);
+    border-bottom: 1px solid var(--bond-border); vertical-align: top; line-height: 1.5;
+  }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table tr:nth-child(even) td { background: var(--bond-surface-subtle); }
+  .summary-table td:first-child { font-weight: 600; color: var(--bo-text); white-space: nowrap; }
+  .summary-table tr.bond-row td {
+    background: rgba(201,168,76,0.06);
+    border-bottom: none;
+  }
+  .summary-table tr.bond-row td:first-child { color: var(--bo-primary); }
+  .tier-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .tier-dot.high { background: var(--bond-gold); }
+  .tier-dot.mid { background: #6B9DC7; }
+  .tier-dot.low { background: var(--bo-text-disabled); }
+  .tier-dot.bond { background: var(--bo-primary); }
+
+  @media (max-width: 640px) {
+    .page-header { padding: 20px; }
+    .tab-nav { padding: 0 16px; }
+    .content { padding: 24px 16px; }
+    .comp-hero { padding: 24px; }
+    .reports-list { grid-template-columns: 1fr; }
+    .sw-grid { grid-template-columns: 1fr; }
+    .bond-compare-grid { grid-template-columns: 1fr; }
+    .links-grid { grid-template-columns: 1fr; }
+    .comp-verdict { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-left">
+    <div class="header-logo">B</div>
+    <div>
+      <div class="header-title">Competitor Reporting Knowledge Base</div>
+      <div class="header-sub">Analytics & Data Team — Bond Sports</div>
+    </div>
+  </div>
+  <div class="header-badge">Internal · Analytics</div>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('daysmart')">DaySmart / Dash</button>
+  <button class="tab-btn" onclick="showTab('ezfacility')">EZFacility</button>
+  <button class="tab-btn" onclick="showTab('daxco')">Club Automation</button>
+  <button class="tab-btn" onclick="showTab('sportsengine')">SportsEngine</button>
+  <button class="tab-btn" onclick="showTab('courtreserve')">CourtReserve</button>
+  <button class="tab-btn" onclick="showTab('leagueapps')">LeagueApps</button>
+  <button class="tab-btn" onclick="showTab('mindbody')">Mindbody</button>
+  <button class="tab-btn" onclick="showTab('summary')">Summary</button>
+</nav>
+
+<main class="content">
+
+  <!-- ── DAYSMART ── -->
+  <div class="tab-panel active" id="tab-daysmart">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">DaySmart Recreation / Dash</div>
+        <div class="comp-niche">Ice rinks · Multi-sport facilities · Municipal rec</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-2">Mid-tier reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Daily sales, deposits, revenue by category, taxes, refunds, credits</li>
+          <li>GL code mapping for accounting/ERP handoff</li>
+          <li>Facility scheduling, utilization, booking reports</li>
+          <li>Program attendance, participation, rosters, exceptions</li>
+          <li>Customer lists, passes, memberships, daily checklists</li>
+          <li>60+ pre-built standard reports across financial and operational domains</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>60+ pre-built reports — best raw breadth in the mid-market</li>
+            <li>GL code support signals real accounting integration path; chart of accounts mapping is rare in this category</li>
+            <li>Daily reconciliation tools built in — financial data maps to bank deposit level</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>No self-serve custom report builder — operators are locked to the 60 preset reports</li>
+            <li>No analytics/BI layer or dashboards; reporting feels transactional, not analytical</li>
+            <li>System performance issues affect reporting usability</li>
+            <li>Membership filtering requires exporting to Excel to get useful segments</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. DaySmart / Dash</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Operators get a full Sigma analytics workspace — interactive charts, tables, saved analyses scoped to their org. Nothing Dash offers comes close to this</li>
+              <li>GAAP-compliant accrual ledger — revenue recognized when earned, not when paid; deferred revenue tracked at every row</li>
+              <li>FIFO payment allocators handle complex multi-product payment-to-revenue matching automatically</li>
+              <li>Real-time Snowflake data; no CSV export, no preset report ceiling</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">Dash competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>60+ prebuilt operational reports for municipal/rec-specific workflows — available out of the box without any setup</li>
+              <li>GL code mapping native in platform — operators hand off to accounting without a data team in the middle</li>
+              <li>Longer market presence in ice rink and multi-sport facilities; staff already know the system</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://help.daysmartrecreation.com/en/collections/9313096-general-reporting" target="_blank">
+          <div class="link-icon">📊</div>
+          <div class="link-text">
+            <div class="link-title">General Reporting Collection</div>
+            <div class="link-domain">help.daysmartrecreation.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daysmartrecreation.com/en/collections/9312989-finance-accounting" target="_blank">
+          <div class="link-icon">💰</div>
+          <div class="link-text">
+            <div class="link-title">Finance & Accounting Collection</div>
+            <div class="link-domain">help.daysmartrecreation.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daysmartrecreation.com/en/articles/9302070-daily-sales-report" target="_blank">
+          <div class="link-icon">📋</div>
+          <div class="link-text">
+            <div class="link-title">Daily Sales Report</div>
+            <div class="link-domain">help.daysmartrecreation.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daysmartrecreation.com/en/articles/11661949-booking-reports" target="_blank">
+          <div class="link-icon">📅</div>
+          <div class="link-text">
+            <div class="link-title">Booking Reports</div>
+            <div class="link-domain">help.daysmartrecreation.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daysmartrecreation.com/en/articles/9302270-customer-reports" target="_blank">
+          <div class="link-icon">👥</div>
+          <div class="link-text">
+            <div class="link-title">Customer Reports</div>
+            <div class="link-domain">help.daysmartrecreation.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EZFACILITY ── -->
+  <div class="tab-panel" id="tab-ezfacility">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">EZFacility</div>
+        <div class="comp-niche">Gyms · Fitness studios · General facility management</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-2">Mid-tier reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Revenue summary by category, taxes, discounts, payment types applied</li>
+          <li>Deferred membership revenue and accrued session revenue</li>
+          <li>Open invoices by customer (AR aging)</li>
+          <li>Client attendance via check-in reports</li>
+          <li>Membership status and expiration tracking</li>
+          <li>Inventory; POS, marketing, payroll, training reports in dedicated tab</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>Financial reporting depth is a standout — revenue report filtering (taxes, discounts, payment types) is more granular than most SMB facility tools</li>
+            <li>CSV export broadly available across reports, enabling downstream Excel or BI work</li>
+            <li>Dedicated Reports tab surfaces financial, POS, marketing, payroll, membership, and training reports in one place</li>
+            <li>Deferred revenue report is genuinely uncommon for this category</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>No custom report builder — top complaint from users; no ad hoc query capability</li>
+            <li>Report navigation became significantly worse after the UI refresh; accounting teams specifically cite difficulty</li>
+            <li>Package credits, some membership details not exportable without additional config</li>
+            <li>Global form fields (not program-specific) create data quality issues that flow into reporting</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. EZFacility</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Operators get a live Sigma workspace — interactive charts, tables, saved analyses on their own data. EZFacility's answer to the same question is a CSV export</li>
+              <li>Full accrual ledger with FIFO allocators vs. EZFacility's cash-basis orientation</li>
+              <li>Program-specific data models produce cleaner reporting inputs; EZFacility's global form fields create noise that flows into reports</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">EZFacility competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>Financial reporting depth available out of the box — AR aging and deferred revenue without a data team</li>
+              <li>Broader prebuilt operational reports for gym-specific workflows (payroll, inventory, training)</li>
+              <li>CSV export everywhere — interoperable with whatever Excel workflow operators already have</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://support.ezfacility.com/hc/en-us/sections/27902438028443-Reports-On-New-EZFacility-Experience" target="_blank">
+          <div class="link-icon">📊</div>
+          <div class="link-text">
+            <div class="link-title">Reports — New EZFacility Experience</div>
+            <div class="link-domain">support.ezfacility.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.ezfacility.com/hc/en-us/articles/23474534910619-Using-the-Revenue-Report-in-EZFacility" target="_blank">
+          <div class="link-icon">💰</div>
+          <div class="link-text">
+            <div class="link-title">Using the Revenue Report</div>
+            <div class="link-domain">support.ezfacility.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.ezfacility.com/hc/en-us/articles/4403486305051-Deferred-Membership-Revenue-Report" target="_blank">
+          <div class="link-icon">📋</div>
+          <div class="link-text">
+            <div class="link-title">Deferred Membership Revenue Report</div>
+            <div class="link-domain">support.ezfacility.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.ezfacility.com/hc/en-us/articles/4403486300315-Open-Invoices-By-Customer-Report" target="_blank">
+          <div class="link-icon">📅</div>
+          <div class="link-text">
+            <div class="link-title">Open Invoices By Customer Report</div>
+            <div class="link-domain">support.ezfacility.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DAXCO / CLUB AUTOMATION ── -->
+  <div class="tab-panel" id="tab-daxco">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">Daxco / Club Automation / GroupExPro</div>
+        <div class="comp-niche">Fitness clubs · Multi-location operators · YMCAs</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-2">Mid-tier reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Member check-ins, visit frequency, membership activity by type and location</li>
+          <li>Revenue by category with QuickBooks export support</li>
+          <li>Membership dashboards: counts, retention rates, expiration forecasts</li>
+          <li>Multi-location rollups across all sites from a single view</li>
+          <li>Class attendance, program fill rates, group event tracking</li>
+          <li>Daxko Operations (YMCA tier): full Report Builder for custom reports</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>Multi-location rollup is a genuine differentiator — operators with 10+ locations get enterprise-level aggregate views without custom BI</li>
+            <li>QuickBooks integration is tested and trusted for financial handoffs</li>
+            <li>Daxko Operations has a full Report Builder — more capable than most peers in this market</li>
+            <li>Purpose-built fitness club dashboards with industry-specific metrics (check-in rates, retention)</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>Club Automation cited as "unreliable and difficult to extract useful data from" — dashboards are cleaner than the underlying report grid</li>
+            <li>Scheduled/automated report delivery was still a roadmap item as of late 2025 — not yet live in Club Automation</li>
+            <li>Reporting capabilities vary significantly by product tier; Report Builder is Daxko Operations only</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. Club Automation</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Operators get a live Sigma workspace — interactive exploration, saved charts/tables on their own data. Club Automation's dashboards are read-only and unreliable per user reviews</li>
+              <li>GAAP-compliant accrual ledger vs. Club Automation's transaction-level financial data</li>
+              <li>FIFO payment allocators for advance payments and multi-product splits — no equivalent in Daxco</li>
+              <li>Sports-facility-native data model (ice, courts, fields, leagues) vs. fitness-club-native</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">Club Automation competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>Multi-location rollup for large fitness chains — 10+ locations in one view without custom engineering</li>
+              <li>Native QuickBooks integration — operators hand off to accounting without a data team in the middle</li>
+              <li>Daxko Operations Report Builder gives YMCA/nonprofit operators meaningful self-serve flexibility on their own</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://daxkoneworg.my.site.com/DaxkoCommunityHub/s/article/CLUB-AUTOMATION-Introducing-Reporting-Dashboards" target="_blank">
+          <div class="link-icon">📊</div>
+          <div class="link-text">
+            <div class="link-title">Club Automation Reporting Dashboards</div>
+            <div class="link-domain">daxko Community Hub</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daxko.com/s/article/club-automation-check-in-report" target="_blank">
+          <div class="link-icon">✅</div>
+          <div class="link-text">
+            <div class="link-title">Club Automation Check-In Report</div>
+            <div class="link-domain">help.daxko.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daxko.com/s/article/DAXKO-OPERATIONS-Report-Builder" target="_blank">
+          <div class="link-icon">🔧</div>
+          <div class="link-text">
+            <div class="link-title">Daxko Operations: Report Builder</div>
+            <div class="link-domain">help.daxko.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.daxko.com/s/club-automation-community-homepage?categories=Club_Market__c:Club_Automation__c" target="_blank">
+          <div class="link-icon">🏠</div>
+          <div class="link-text">
+            <div class="link-title">Club Automation Help Center</div>
+            <div class="link-domain">help.daxko.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SPORTSENGINE ── -->
+  <div class="tab-panel" id="tab-sportsengine">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">SportsEngine HQ</div>
+        <div class="comp-niche">Youth sports · Clubs · Leagues · NBC Sports subsidiary</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-3">Basic reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Payout Reports: transaction ID, fees, refunds — formatted for accounting import</li>
+          <li>Receivables Report: past-due and upcoming invoices</li>
+          <li>Sale Items Report: line-item breakdown of what was sold</li>
+          <li>Adjustments Report: discounts, credits, voids</li>
+          <li>Payments Report: online vs. offline payment split</li>
+          <li>Member data export: registration counts, custom question responses, roster exports</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Note:</strong> SportsEngine Play offers "Advanced Sports Reports" as a paid add-on tier — explicitly targets operators who need deeper financial analytics beyond what standard HQ provides. Separate product, separate cost.
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>Six distinct financial report types with CSV export — Payout Reports specifically formatted for accounting system import</li>
+            <li>Well-structured for reconciliation: receivables and payout reports directly address the core pain of youth sports payment collection</li>
+            <li>Advanced Sports Reports (paid add-on) targets operators who need more depth</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>No custom report designer in core HQ — cannot define your own fields, query, or layout</li>
+            <li>No trend analysis, cohort reporting, or visualization layer without paying for Advanced Reports</li>
+            <li>No member lifecycle or LTV analytics at HQ level; retention and churn not surfaced natively</li>
+            <li>Complex backend means changing a registration can require editing 5–10 different objects, complicating data integrity</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. SportsEngine</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Operators get a live Sigma workspace — interactive charts, tables, trend analysis on their own data. SportsEngine requires paying for a separate Advanced Reports add-on to get anything beyond static CSV exports</li>
+              <li>Full accrual ledger with revenue recognition; SportsEngine is entirely cash/payment-event oriented</li>
+              <li>All analytics available to operators without a paid tier upgrade</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">SportsEngine competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>Structured payment reconciliation reports purpose-built for youth sports workflows — payout format maps directly to accounting imports</li>
+              <li>Strong for large umbrella organizations running many clubs/teams under one account (NBC Sports distribution and reach)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://help.sportsengine.com/en/articles/6342603-learn-about-financial-reporting-tools" target="_blank">
+          <div class="link-icon">💰</div>
+          <div class="link-text">
+            <div class="link-title">Financial Reporting Tools Overview</div>
+            <div class="link-domain">help.sportsengine.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.sportsengine.com/en/articles/6620477-how-to-use-payout-reports" target="_blank">
+          <div class="link-icon">📋</div>
+          <div class="link-text">
+            <div class="link-title">How to Use Payout Reports</div>
+            <div class="link-domain">help.sportsengine.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.sportsengine.com/en/articles/6633175-how-to-use-receivables-report" target="_blank">
+          <div class="link-icon">📅</div>
+          <div class="link-text">
+            <div class="link-title">How to Use Receivables Report</div>
+            <div class="link-domain">help.sportsengine.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.sportsengine.com/en/articles/6310277-how-to-view-and-export-member-data" target="_blank">
+          <div class="link-icon">👥</div>
+          <div class="link-text">
+            <div class="link-title">View and Export Member Data</div>
+            <div class="link-domain">help.sportsengine.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://discover.sportsengineplay.com/solutions/capabilities/finance/advanced-reporting" target="_blank">
+          <div class="link-icon">⭐</div>
+          <div class="link-text">
+            <div class="link-title">Advanced Sports Reports (Play add-on)</div>
+            <div class="link-domain">discover.sportsengineplay.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COURTRESERVE ── -->
+  <div class="tab-panel" id="tab-courtreserve">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">CourtReserve</div>
+        <div class="comp-niche">Pickleball · Tennis · Racquet sports facilities</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-3">Basic reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Court utilization: by court, time slot, peak hours — specific to racquet sport ops</li>
+          <li>Transaction reports with revenue category columns; online payment reports</li>
+          <li>Membership status, waitlist tracking, expiration data</li>
+          <li>Event registrant detail/summary; league registrant detail</li>
+          <li>Attendance check-in/summary reports</li>
+          <li>DUPR rating history (unique to racquet sports); guest and waiver completion reports</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>Court utilization reporting is best-in-class for the racquet sports niche — specific to peak hours, program popularity, and space usage</li>
+            <li>Export to .xlsx and PDF available across most reports; Audit Log export provides a clean data trail</li>
+            <li>Enterprise API for multi-location aggregate reporting — cross-location data without toggling between sites</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>No BI layer or visualization product — help center has only ~18 reporting articles</li>
+            <li>Financial analytics are shallow — transaction lists rather than revenue trend analysis, P&L, or forecasting</li>
+            <li>No custom report builder; ~12 fixed report types</li>
+            <li>Reporting section is not prominently organized in their public docs — buried under "Additional Features"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. CourtReserve</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Operators get a live Sigma workspace — interactive exploration of their own data. CourtReserve has no analytics layer; their reporting is ~12 fixed tabular exports</li>
+              <li>Full financial analytics — P&L, revenue trends, deferred revenue, AR aging vs. CourtReserve's transaction lists</li>
+              <li>GAAP-compliant accrual ledger with FIFO payment allocators for complex payment scenarios</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">CourtReserve competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>Court-level utilization at the granularity racquet sports facilities need — by court, by hour, DUPR history. Bond's data model doesn't go this deep on sport-specific operational detail</li>
+              <li>Lower barrier to basic insights for operators without a data team — out of the box, no setup required</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://help.courtreserve.com/en/" target="_blank">
+          <div class="link-icon">🏠</div>
+          <div class="link-text">
+            <div class="link-title">CourtReserve Help Center</div>
+            <div class="link-domain">help.courtreserve.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://help.courtreserve.com/en/articles/10414722-set-up-api-access-integration" target="_blank">
+          <div class="link-icon">🔌</div>
+          <div class="link-text">
+            <div class="link-title">Set Up API Access Integration</div>
+            <div class="link-domain">help.courtreserve.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://courtreserve.com/features/" target="_blank">
+          <div class="link-icon">📊</div>
+          <div class="link-text">
+            <div class="link-title">Features Overview (Reporting section)</div>
+            <div class="link-domain">courtreserve.com</div>
+          </div>
+        </a>
+      </div>
+      <p style="font-size:12px;color:var(--bo-text-disabled);margin-top:10px;">Note: CourtReserve's help center does not have a standalone public reporting landing page — navigate from the help center home and search "reports."</p>
+    </div>
+  </div>
+
+  <!-- ── LEAGUEAPPS ── -->
+  <div class="tab-panel" id="tab-leagueapps">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">LeagueApps</div>
+        <div class="comp-niche">Sports leagues · Multi-sport facilities · Youth organizations</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-2">Mid-tier reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Registration reports across all sites, filterable by program, date, status</li>
+          <li>Invoices Report, Invoice Items Report, Invoice Payment Plan Installments</li>
+          <li>Cash Accounting: Summary Journal Entries (GL-ready export)</li>
+          <li>Credits Issued, Credit Balances — credit lifecycle tracked end to end</li>
+          <li>Player Retention Report: retention rate + revenue attributed from first year</li>
+          <li>Program Comparisons Report for side-by-side performance; e-commerce orders report</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Standout:</strong> The Cash Accounting Summary Journal Entries report is unusually mature for this category — directly addresses the GL handoff problem that most competitors either ignore or handle with a generic CSV export. Their Player Retention Report also ties retention to revenue, which is rare.
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>Cash Accounting Journal Entries is the most finance-team-ready financial export in this competitive set</li>
+            <li>Player Retention Report with revenue attribution — shows how much revenue returning players represent, not just whether they return</li>
+            <li>Smart Tables (custom column/filter config) and scheduled Excel exports give power users real self-serve capability</li>
+            <li>Multi-org reporting available for enterprise operators running multiple sites</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>Data mining and consistency issues cited in reviews — analytics layer is newer and still maturing</li>
+            <li>Reporting is registration/financial-centric — operational reporting (facility utilization, court usage) is minimal</li>
+            <li>Some report types noted as "being added in coming months" — roadmap is still catching up to the marketing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. LeagueApps</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Operators get a live Sigma workspace — interactive charts, tables, saved analyses. LeagueApps' "Smart Tables" are configurable grids; Bond operators get a full BI tool</li>
+              <li>Full GAAP accrual ledger vs. LeagueApps' cash accounting orientation — revenue recognized when earned, deferred revenue tracked at every row</li>
+              <li>FIFO payment allocators for complex multi-product payment matching — LeagueApps has no equivalent</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">LeagueApps competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>Journal Entries Report is a strong GL handoff — the most operator-accessible accounting export in this market, no data team required</li>
+              <li>Player Retention Report ties retention rate to LTV — a metric Bond doesn't currently surface explicitly in Sigma workbooks</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://support.leagueapps.com/hc/en-us/articles/18729556493207-LeagueApps-Analytics-Overview" target="_blank">
+          <div class="link-icon">📊</div>
+          <div class="link-text">
+            <div class="link-title">LeagueApps Analytics Overview</div>
+            <div class="link-domain">support.leagueapps.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.leagueapps.com/hc/en-us/articles/25003505584279-Smart-Tables-in-LeagueApps-Analytics" target="_blank">
+          <div class="link-icon">🔧</div>
+          <div class="link-text">
+            <div class="link-title">Smart Tables in Analytics</div>
+            <div class="link-domain">support.leagueapps.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.leagueapps.com/hc/en-us/articles/21577681547671-Cash-Accounting-Summary-Journal-Entries-Report" target="_blank">
+          <div class="link-icon">📋</div>
+          <div class="link-text">
+            <div class="link-title">Cash Accounting: Journal Entries Report</div>
+            <div class="link-domain">support.leagueapps.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.leagueapps.com/hc/en-us/articles/22070945486359-Player-Retention-Report" target="_blank">
+          <div class="link-icon">🔄</div>
+          <div class="link-text">
+            <div class="link-title">Player Retention Report</div>
+            <div class="link-domain">support.leagueapps.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.leagueapps.com/hc/en-us/articles/22766208523031-Sales-Reports-Allocation-Reports-Booking-List-Reports-in-LeagueApps-Facilities" target="_blank">
+          <div class="link-icon">🏟️</div>
+          <div class="link-text">
+            <div class="link-title">Sales, Allocation & Booking Reports (Facilities)</div>
+            <div class="link-domain">support.leagueapps.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MINDBODY ── -->
+  <div class="tab-panel" id="tab-mindbody">
+    <div class="comp-hero" style="background: linear-gradient(135deg, #0F1923 0%, #1A2940 100%);">
+      <div>
+        <div class="comp-name">Mindbody</div>
+        <div class="comp-niche">Wellness studios · Fitness · Boutique gyms · 25,000+ locations</div>
+      </div>
+      <div class="comp-verdict">
+        <div class="verdict-chip tier-1">Enterprise-tier reporting</div>
+        <div class="verdict-label">Analytics maturity</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Why Mindbody stands apart:</strong> They embedded Sigma Computing directly into their product as "Analytics 2.0" — white-labeled, in-app, with interactive charts and configurable filters. On top of that, they offer a Snowflake Data Mart that operators can connect directly to their own BI stack (Tableau, Power BI, Looker). No other competitor in this set is anywhere near this level of analytics infrastructure.
+    </div>
+
+    <div class="section">
+      <div class="section-title">What They Report On</div>
+      <div class="reports-card">
+        <ul class="reports-list">
+          <li>Revenue by date range, product type, location; average ticket/spend per visit</li>
+          <li>Attendance and utilization: check-ins, bookings vs. attendance, cancellations, class fill rates, appointment occupancy</li>
+          <li>Membership: new member growth, retention, churn</li>
+          <li>Industry benchmarking against 25,000+ Mindbody customers in aggregate dataset</li>
+          <li>AI-driven weekly summary with week-over-week auto-surfaced highlights</li>
+          <li>Raw data access via Snowflake Data Mart for direct BI tool connection</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sw-grid">
+        <div class="sw-card strengths">
+          <div class="sw-label">Strengths</div>
+          <ul class="sw-list">
+            <li>Analytics 2.0 (Sigma-embedded) is the most technically sophisticated in-product reporting in this market — interactive, configurable, no BI tool required for operators</li>
+            <li>Snowflake Data Mart is a true enterprise data access path — operators connect their own BI stack directly to Mindbody's data model</li>
+            <li>AI weekly summary auto-surfaces important metrics with week-over-week context — useful for non-technical managers</li>
+            <li>Industry benchmarking against 25,000+ customers is genuinely unique — operators see how they compare to peers</li>
+          </ul>
+        </div>
+        <div class="sw-card weaknesses">
+          <div class="sw-label">Weaknesses / Gaps</div>
+          <ul class="sw-list">
+            <li>Analytics 2.0 updates complex data only once every 24 hours — real-time financial reconciliation is not possible</li>
+            <li>Snowflake Data Mart and API access require technical setup (ETL tools, connectors, custom code) — not self-serve without a data team</li>
+            <li>Standard reports beneath Analytics 2.0 have limited custom building; hitting a wall beyond preset dashboards without the Data Mart path</li>
+            <li>Built for wellness/studio context — facility-specific reporting (court utilization, ice time, field scheduling) is not what the product was designed for</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bond vs. Mindbody</div>
+      <div class="bond-compare">
+        <div class="bond-compare-header"><div class="b-logo">B</div>Where Bond stands</div>
+        <div class="bond-compare-grid">
+          <div>
+            <div class="bond-col-label stronger">Bond is stronger</div>
+            <ul class="bond-compare-list bond-stronger-list">
+              <li>Real-time data — Bond's Snowflake/Sigma stack has no 24hr lag; Mindbody's Analytics 2.0 refreshes complex data once per day</li>
+              <li>GAAP-compliant accrual ledger — Mindbody is cash/transaction-oriented; Bond tracks revenue recognition, deferred revenue, and double-entry accounting</li>
+              <li>Sports-facility-native data model — ice, courts, fields, leagues; Mindbody is built for classes and appointments</li>
+              <li>FIFO payment allocators for complex advance payments and multi-product splits — no equivalent in Mindbody</li>
+            </ul>
+          </div>
+          <div>
+            <div class="bond-col-label competes">Mindbody competes</div>
+            <ul class="bond-compare-list bond-competes-list">
+              <li>Both use Sigma to deliver analytics to operators — roughly peer on the self-serve experience. Mindbody may allow full workbook creation; Bond operators can create charts/tables off existing workbooks</li>
+              <li>Industry benchmarking against 25,000+ customers — operators see how they compare to peers. Bond has no equivalent dataset</li>
+              <li>Snowflake Data Mart allows any BI tool to connect — broader enterprise ecosystem flexibility beyond Sigma</li>
+              <li>AI weekly summary is a polished in-product feature surfaced directly to operators</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Public Help Center — Reporting</div>
+      <div class="links-grid">
+        <a class="link-card" href="https://support.mindbodyonline.com/s/article/Analytics-2-0?language=en_US" target="_blank">
+          <div class="link-icon">⭐</div>
+          <div class="link-text">
+            <div class="link-title">Analytics 2.0 Overview</div>
+            <div class="link-domain">support.mindbodyonline.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.mindbodyonline.com/s/article/203256053-Reports-explained?language=en_US" target="_blank">
+          <div class="link-icon">📊</div>
+          <div class="link-text">
+            <div class="link-title">Reports Screen Overview</div>
+            <div class="link-domain">support.mindbodyonline.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.mindbodyonline.com/s/article/203253613-Dashboard-Analytics?language=en_US" target="_blank">
+          <div class="link-icon">📈</div>
+          <div class="link-text">
+            <div class="link-title">Dashboard Analytics</div>
+            <div class="link-domain">support.mindbodyonline.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://support.mindbodyonline.com/s/article/Export-Data-report-Marketing-Suite?language=en_US" target="_blank">
+          <div class="link-icon">📤</div>
+          <div class="link-text">
+            <div class="link-title">Export Data Report (Marketing Suite)</div>
+            <div class="link-domain">support.mindbodyonline.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://mindbody.exceedlms.com/student/path/2351858-analytics-2-0" target="_blank">
+          <div class="link-icon">🎓</div>
+          <div class="link-text">
+            <div class="link-title">Analytics 2.0 Learning Center</div>
+            <div class="link-domain">mindbody.exceedlms.com</div>
+          </div>
+        </a>
+        <a class="link-card" href="https://www.sigmacomputing.com/customers/how-mindbody-built-white-labeled-embedded-analytics-at-scale" target="_blank">
+          <div class="link-icon">🔗</div>
+          <div class="link-text">
+            <div class="link-title">How Mindbody Built Embedded Analytics (Sigma case study)</div>
+            <div class="link-domain">sigmacomputing.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SUMMARY ── -->
+  <div class="tab-panel" id="tab-summary">
+    <div class="comp-hero">
+      <div>
+        <div class="comp-name">Reporting Landscape Summary</div>
+        <div class="comp-niche">Analytics team lens — how the market stacks up</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Side-by-Side Comparison</div>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Analytics Tier</th>
+            <th>Custom Reports</th>
+            <th>Export / BI Path</th>
+            <th>Key Gap</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tier-dot mid"></span>DaySmart / Dash</td>
+            <td>Mid-tier</td>
+            <td>No — 60 prebuilt only</td>
+            <td>CSV</td>
+            <td>No analytics layer or dashboards</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot mid"></span>EZFacility</td>
+            <td>Mid-tier</td>
+            <td>No</td>
+            <td>CSV</td>
+            <td>Navigation friction post-UI refresh; no custom queries</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot mid"></span>Club Automation</td>
+            <td>Mid-tier</td>
+            <td>Daxko Operations only (not CA)</td>
+            <td>QuickBooks, CSV</td>
+            <td>CA-specific report reliability; scheduled delivery not yet live</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot low"></span>SportsEngine HQ</td>
+            <td>Basic</td>
+            <td>No (Advanced Reports is paid add-on)</td>
+            <td>CSV</td>
+            <td>No visualization or trend analysis without paying for Advanced tier</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot low"></span>CourtReserve</td>
+            <td>Basic</td>
+            <td>No</td>
+            <td>XLSX / PDF, Enterprise API</td>
+            <td>Shallow financial analytics; no BI layer</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot mid"></span>LeagueApps</td>
+            <td>Mid-tier</td>
+            <td>Smart Tables (limited)</td>
+            <td>CSV / Excel, scheduled exports</td>
+            <td>Minimal operational reporting; registration/financial-centric only</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot high"></span>Mindbody</td>
+            <td>Enterprise</td>
+            <td>Yes — via Snowflake Data Mart</td>
+            <td>Snowflake Data Mart, API, any BI tool</td>
+            <td>24hr data lag; Data Mart requires technical setup; wellness-native not facility-native</td>
+          </tr>
+          <tr class="bond-row">
+            <td><span class="tier-dot bond"></span>Bond Sports Analytics</td>
+            <td>Enterprise</td>
+            <td>Yes — Sigma workbooks + 287 dbt models; operators create charts/tables</td>
+            <td>Sigma (operators), Snowflake, Claude/MCP, Secure Data Share</td>
+            <td>Operators can't create new workbooks (charts/tables only); no peer benchmarking dataset</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" style="margin-top: 32px;">
+      <div class="section-title">Key Observations</div>
+      <div class="reports-card">
+        <ul class="reports-list" style="grid-template-columns: 1fr;">
+          <li><strong>Every platform except Mindbody requires CSV export for anything beyond pre-built reports.</strong> This is the market norm — Bond's Sigma stack is genuinely differentiated.</li>
+          <li><strong>Mindbody is the only direct infrastructure peer.</strong> Both use Sigma + Snowflake and deliver it directly to operators. The real differences are data model (Bond: GAAP accrual; Mindbody: cash/transaction), domain fit (Bond: sports facilities; Mindbody: wellness), and data freshness (Bond: real-time; Mindbody: 24hr lag).</li>
+          <li><strong>No competitor has a GAAP-compliant accrual ledger.</strong> Revenue recognition, deferred revenue, and double-entry accounting with FIFO allocators are Bond-unique in this market segment.</li>
+          <li><strong>LeagueApps has the most thoughtful financial document set</strong> among the non-Mindbody tier — journal entries, LTV-linked retention. Worth watching as they mature.</li>
+          <li><strong>Bond's clearest gap vs. Mindbody:</strong> industry benchmarking (Mindbody's 25,000+ customer dataset) and the ability for operators to create full workbooks, not just charts/tables off existing ones.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>

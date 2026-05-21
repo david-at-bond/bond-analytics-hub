@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LTV Report — Sigma Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+<style>
+  :root {
+    --bond-navy: #092d4a;
+    --bond-gold: #d4a853;
+    --bo-primary: #0D4774;
+    --bo-text: #1A1A1A;
+    --bo-text-body: #4A4A4A;
+    --bo-text-disabled: #B0B0B0;
+    --bond-surface: #FFFFFF;
+    --bond-surface-subtle: #F8F9FA;
+    --bond-border: #E2E8F0;
+    --bond-border-subtle: #F1F5F9;
+    --publish-blue: #185FA5;
+    --success-text: #0F6E56;
+    --success-bg: #E1F5EE;
+    --error-text: #A32D2D;
+    --error-bg: #FCEBEB;
+    --warning-text: #854F0B;
+    --warning-bg: #FAEEDA;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Montserrat', sans-serif; -webkit-font-smoothing: antialiased; background: var(--bond-surface-subtle); color: var(--bo-text); display: flex; height: 100vh; overflow: hidden; font-size: 14px; }
+  h1, h2, h3, .section-header-text h1, .topbar-title, .chart-title, .kpi-value, .sankey-stat-val, .deep-stat-val { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; }
+
+  /* SIDEBAR */
+  .sidebar { width: 48px; background: var(--bond-navy); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 4px; flex-shrink: 0; z-index: 10; }
+  .sidebar-logo { width: 28px; height: 28px; margin-bottom: 8px; }
+  .sidebar-logo svg { width: 100%; height: 100%; }
+  .sidebar-icon { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); font-size: 16px; cursor: pointer; transition-property: background, color; transition-duration: 150ms; }
+  .sidebar-icon:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+  .sidebar-icon.active { background: rgba(201,168,76,0.15); color: var(--bond-gold); }
+  .sidebar-spacer { flex: 1; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  /* TOPBAR */
+  .topbar { background: var(--bond-surface); border-bottom: 1px solid var(--bond-border); display: flex; align-items: center; gap: 8px; padding: 0 16px; height: 48px; flex-shrink: 0; }
+  .topbar-title { font-size: 14px; font-weight: 600; color: var(--bo-text); flex: 1; }
+  .badge-draft { font-size: 11px; font-weight: 600; color: var(--bo-text-body); background: var(--bond-surface-subtle); border: 1px solid var(--bond-border); border-radius: 4px; padding: 2px 8px; display: flex; align-items: center; gap: 4px; }
+  .btn-publish { background: var(--publish-blue); color: white; font-size: 13px; font-weight: 600; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; color: var(--bo-text-disabled); }
+  .topbar-icon { font-size: 16px; cursor: pointer; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--bo-primary); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+  /* TABBAR */
+  .tabbar { background: var(--bond-surface); border-bottom: 1px solid var(--bond-border); display: flex; align-items: center; padding: 0 16px; height: 38px; flex-shrink: 0; }
+  .tab-add { font-size: 18px; color: var(--bo-text-disabled); margin-right: 12px; cursor: pointer; line-height: 1; }
+  .tab { padding: 0 16px; height: 38px; display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--bo-text-body); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition-property: color, border-color; transition-duration: 150ms; }
+  .tab:hover { color: var(--bo-text); }
+  .tab.active { color: var(--bo-primary); border-bottom-color: var(--bo-primary); }
+
+  /* CONTENT */
+  .content-area { flex: 1; overflow: hidden; }
+  .tab-content { display: none; height: 100%; overflow-y: auto; padding: 20px 24px; }
+  .tab-content.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .section-icon { font-size: 40px; line-height: 1; }
+  .section-header-text h1 { font-size: 20px; font-weight: 700; color: var(--bo-primary); }
+  .section-header-text p { font-size: 13px; color: var(--bo-text-body); margin-top: 2px; }
+
+  /* KPI TILES */
+  .kpi-row { display: flex; gap: 12px; margin-bottom: 20px; }
+  .kpi-card { flex: 1; background: white; border: 1px solid var(--bond-border); border-radius: 8px; padding: 16px 20px; min-width: 0; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: var(--bo-primary); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi-value.positive { color: var(--success-text); }
+  .kpi-value.warning { color: var(--warning-text); }
+  .kpi-label { font-size: 11px; font-weight: 500; color: var(--bo-text-body); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi-sub { font-size: 11px; color: var(--bo-text-disabled); margin-top: 2px; }
+
+  /* FILTER BAR */
+  .filter-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filter-btn-dark { background: var(--bond-navy); color: white; border: none; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .filter-pill { border: 1px solid var(--bond-border); border-radius: 6px; padding: 5px 11px; font-size: 12px; font-family: inherit; color: var(--bo-text-body); background: white; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .filter-pill select { border: none; background: none; font-size: 12px; font-family: inherit; color: var(--bo-text-body); cursor: pointer; outline: none; }
+  .btn-reset { background: #C53030; color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* CHART CARD */
+  .chart-card { background: white; border: 1px solid var(--bond-border); border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
+  .chart-title { font-size: 14px; font-weight: 600; color: var(--bo-text); margin-bottom: 4px; }
+  .chart-subtitle { font-size: 12px; color: var(--bo-text-body); margin-bottom: 16px; }
+  .chart-legend { display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--bo-text-body); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend-line { width: 20px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+
+  /* BAR CHART (overview) */
+  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .bar { border-radius: 4px 4px 0 0; width: 100%; transition-property: opacity; transition-duration: 150ms; cursor: pointer; }
+  .bar:hover { opacity: 0.8; }
+  .bar-label { font-size: 10px; color: var(--bo-text-body); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .bar-value { font-size: 10px; font-weight: 600; color: var(--bo-primary); text-align: center; font-variant-numeric: tabular-nums; }
+
+  /* HEATMAP TABLE */
+  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .heatmap-table th { background: var(--bond-surface-subtle); font-size: 11px; font-weight: 600; color: var(--bo-text); padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--bond-border); white-space: nowrap; }
+  .heatmap-table th.num { text-align: right; }
+  .heatmap-table td { padding: 7px 10px; border-bottom: 1px solid var(--bond-border-subtle); font-size: 12px; vertical-align: middle; }
+  .heatmap-table tr:last-child td { border-bottom: none; }
+  .heatmap-table tr:hover td { background: var(--bond-surface-subtle); }
+  .heatmap-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .cell-heat { padding: 4px 8px; border-radius: 4px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; display: inline-block; min-width: 52px; }
+  .heat-1 { background: #E6F1FB; color: #185FA5; }
+  .heat-2 { background: #D0E8F7; color: #0D4774; }
+  .heat-3 { background: #B5D4F4; color: #0D4774; }
+  .heat-4 { background: #8CBEED; color: #0D4774; }
+  .heat-5 { background: #5EA0D6; color: white; }
+  .program-tag { display: inline-block; background: var(--bond-surface-subtle); border: 1px solid var(--bond-border); border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 500; color: var(--bo-text); }
+
+  /* DATA TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table thead th { background: var(--bond-surface-subtle); font-size: 11px; font-weight: 600; color: var(--bo-text); padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--bond-border); white-space: nowrap; }
+  .data-table thead th.sort { cursor: pointer; }
+  .data-table thead th.sort::after { content: ' ▾'; color: var(--bo-text-disabled); }
+  .data-table thead th.num { text-align: right; }
+  .data-table tbody tr:nth-child(even) { background: #FAFAFA; }
+  .data-table tbody tr:hover { background: var(--bond-surface-subtle); }
+  .data-table td { padding: 9px 12px; border-bottom: 1px solid var(--bond-border-subtle); color: var(--bo-text); font-size: 13px; vertical-align: middle; }
+  .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .data-table td.link { color: var(--bo-primary); font-weight: 500; cursor: pointer; }
+  .data-table td.link:hover { text-decoration: underline; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--success-bg); color: var(--success-text); }
+  .badge-blue { background: #E6F1FB; color: #185FA5; }
+  .badge-orange { background: var(--warning-bg); color: var(--warning-text); }
+
+  /* SANKEY */
+  #sankey-svg { width: 100%; display: block; }
+  .sankey-tooltip {
+    position: fixed; background: var(--bond-navy); color: white; font-family: 'Inter', sans-serif;
+    font-size: 12px; padding: 8px 12px; border-radius: 6px; pointer-events: none;
+    opacity: 0; transition-property: opacity; transition-duration: 120ms; z-index: 100;
+    max-width: 220px; line-height: 1.5;
+  }
+  .sankey-stat-row { display: flex; gap: 24px; margin-bottom: 16px; }
+  .sankey-stat { background: var(--bond-surface-subtle); border: 1px solid var(--bond-border); border-radius: 8px; padding: 12px 16px; flex: 1; }
+  .sankey-stat-val { font-size: 20px; font-weight: 700; color: var(--bo-primary); font-variant-numeric: tabular-nums; }
+  .sankey-stat-lbl { font-size: 11px; color: var(--bo-text-body); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* CUSTOMER EXPLORER */
+  .explorer-controls { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+  .search-input { flex: 1; border: 1px solid var(--bond-border); border-radius: 6px; padding: 8px 12px; font-size: 13px; font-family: inherit; color: var(--bo-text); outline: none; background: white; }
+  .search-input:focus { border-color: var(--bo-primary); box-shadow: 0 0 0 3px rgba(13,71,116,0.08); }
+  .search-input::placeholder { color: var(--bo-text-disabled); }
+  .explorer-select { border: 1px solid var(--bond-border); border-radius: 6px; padding: 8px 12px; font-size: 13px; font-family: inherit; color: var(--bo-text); background: white; cursor: pointer; outline: none; }
+  .journey-chips { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; }
+  .journey-chip { display: inline-block; background: #EEF4FB; color: var(--bo-primary); border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .journey-arrow { color: var(--bo-text-disabled); font-size: 10px; }
+  .no-results { text-align: center; padding: 40px 0; color: var(--bo-text-disabled); font-size: 13px; }
+
+  /* LINE CHART */
+  #timeline-svg { width: 100%; display: block; }
+  .line-annotation { font-size: 11px; fill: var(--bo-text-body); font-family: 'Inter', sans-serif; }
+
+  /* DEEP-DIVE SANKEY */
+  .deep-selector { display: flex; align-items: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  .deep-label { font-size: 11px; font-weight: 700; color: var(--bo-text-disabled); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .deep-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .deep-pill { border: 1px solid var(--bond-border); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; font-family: inherit; color: var(--bo-text-body); background: white; cursor: pointer; transition-property: background, color, border-color; transition-duration: 120ms; }
+  .deep-pill:hover { border-color: var(--bo-primary); color: var(--bo-primary); }
+  .deep-pill.active { background: var(--bo-primary); color: white; border-color: var(--bo-primary); }
+  .deep-stats { display: flex; gap: 10px; margin-bottom: 18px; }
+  .deep-stat { flex: 1; background: var(--bond-surface-subtle); border: 1px solid var(--bond-border); border-radius: 6px; padding: 10px 14px; }
+  .deep-stat-val { font-size: 17px; font-weight: 700; color: var(--bo-primary); font-variant-numeric: tabular-nums; }
+  .deep-stat-lbl { font-size: 10px; color: var(--bo-text-body); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px; }
+  #deep-sankey-svg { width: 100%; display: block; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 4C8.477 4 4 8.477 4 14s4.477 10 10 10 10-4.477 10-10S19.523 4 14 4z" fill="#C9A84C"/>
+      <path d="M10 14l3 3 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="sidebar-icon active">⊞</div>
+  <div class="sidebar-icon">⬡</div>
+  <div class="sidebar-icon">◎</div>
+  <div class="sidebar-icon">🔍</div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-icon">⚙</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">LTV Report</div>
+    <div class="badge-draft">Draft ✏</div>
+    <button class="btn-publish">Publish ▾</button>
+    <div class="topbar-actions">
+      <span class="topbar-icon">↻</span>
+      <span class="topbar-icon">⚙</span>
+      <span class="topbar-icon">?</span>
+      <div class="avatar">DJ</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab-add">+</div>
+    <div class="tab active" data-tab="overview">LTV Overview</div>
+    <div class="tab" data-tab="pathing">Program Pathing</div>
+    <div class="tab" data-tab="timeline">Cohort Timeline</div>
+    <div class="tab" data-tab="explorer">Customer Explorer</div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- TAB 1: LTV OVERVIEW -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="section-header">
+        <div class="section-icon">📈</div>
+        <div class="section-header-text">
+          <h1>Customer Lifetime Value by Acquisition Program</h1>
+          <p>Average revenue per customer, segmented by the first program they registered for</p>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-value">$847</div>
+          <div class="kpi-label">Avg LTV — All Customers</div>
+          <div class="kpi-sub">36-month window</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value positive">$1,284</div>
+          <div class="kpi-label">Top Cohort LTV</div>
+          <div class="kpi-sub">Learn to Skate</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">4,312</div>
+          <div class="kpi-label">Customers Analyzed</div>
+          <div class="kpi-sub">≥2 registrations</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value warning">$312</div>
+          <div class="kpi-label">Avg LTV — 12 Months</div>
+          <div class="kpi-sub">First-year revenue</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">$847</div>
+          <div class="kpi-label">Avg LTV — 36 Months</div>
+          <div class="kpi-sub">Three-year revenue</div>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn-dark">Filters ▾</button>
+        <div class="filter-pill">📅 Jan 2022 – Dec 2024</div>
+        <div class="filter-pill"><select><option>All Organizations</option><option>Community Rec Inc</option><option>TOCA</option><option>Orlando Ice Den</option></select></div>
+        <div class="filter-pill"><select><option>All Entry Programs</option><option>Learn to Skate</option><option>Adult League</option><option>Stick &amp; Puck</option></select></div>
+        <div class="filter-pill"><select><option>36-Month Window</option><option>12-Month Window</option><option>24-Month Window</option></select></div>
+        <button class="btn-reset">Reset</button>
+      </div>
+
+      <!-- Bar chart -->
+      <div class="chart-card">
+        <div class="chart-title">Average LTV by Entry Program (36 Months)</div>
+        <div class="chart-subtitle">Hover a bar to see details</div>
+        <div style="display:flex; gap:0; align-items:flex-end;">
+          <div style="display:flex; flex-direction:column-reverse; justify-content:space-between; height:180px; padding-right:8px; padding-bottom:24px;">
+            <span style="font-size:10px; color:var(--bo-text-disabled); font-variant-numeric:tabular-nums;">$0</span>
+            <span style="font-size:10px; color:var(--bo-text-disabled); font-variant-numeric:tabular-nums;">$400</span>
+            <span style="font-size:10px; color:var(--bo-text-disabled); font-variant-numeric:tabular-nums;">$800</span>
+            <span style="font-size:10px; color:var(--bo-text-disabled); font-variant-numeric:tabular-nums;">$1,200</span>
+            <span style="font-size:10px; color:var(--bo-text-disabled); font-variant-numeric:tabular-nums;">$1,600</span>
+          </div>
+          <div style="display:flex; flex:1; align-items:flex-end; gap:10px; height:180px; border-left:1px solid var(--bond-border); border-bottom:1px solid var(--bond-border); padding:0 12px; position:relative;">
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;">
+              <div style="position:absolute;bottom:25%;left:0;right:0;border-top:1px dashed #E2E8F0;"></div>
+              <div style="position:absolute;bottom:50%;left:0;right:0;border-top:1px dashed #E2E8F0;"></div>
+              <div style="position:absolute;bottom:75%;left:0;right:0;border-top:1px dashed #E2E8F0;"></div>
+            </div>
+            <div class="bar-group"><div class="bar-value">$1,284</div><div class="bar" style="height:80%;background:#0D4774;"></div><div class="bar-label">Learn to Skate</div></div>
+            <div class="bar-group"><div class="bar-value">$1,105</div><div class="bar" style="height:69%;background:#0D4774;"></div><div class="bar-label">Private Lessons</div></div>
+            <div class="bar-group"><div class="bar-value">$963</div><div class="bar" style="height:60%;background:#0D4774;"></div><div class="bar-label">Summer Camp</div></div>
+            <div class="bar-group"><div class="bar-value">$841</div><div class="bar" style="height:53%;background:#0D4774;"></div><div class="bar-label">Hockey School</div></div>
+            <div class="bar-group"><div class="bar-value">$734</div><div class="bar" style="height:46%;background:#C9A84C;"></div><div class="bar-label">Figure Skating</div></div>
+            <div class="bar-group"><div class="bar-value">$528</div><div class="bar" style="height:33%;background:#C9A84C;"></div><div class="bar-label">Open Skate</div></div>
+            <div class="bar-group"><div class="bar-value">$391</div><div class="bar" style="height:24%;background:#C9A84C;"></div><div class="bar-label">Adult League</div></div>
+            <div class="bar-group"><div class="bar-value">$287</div><div class="bar" style="height:18%;background:#D1D5DB;"></div><div class="bar-label">Stick &amp; Puck</div></div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#0D4774;"></div> Above avg LTV ($847)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#C9A84C;"></div> Near avg LTV</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#D1D5DB;"></div> Below avg LTV</div>
+        </div>
+      </div>
+
+      <!-- Cohort heatmap -->
+      <div class="chart-card">
+        <div class="chart-title">Cohort Comparison — LTV by Entry Program &amp; Time Period</div>
+        <table class="heatmap-table">
+          <thead><tr>
+            <th>Entry Program</th><th class="num">Customers</th>
+            <th class="num">Avg 6-Mo</th><th class="num">Avg 12-Mo</th>
+            <th class="num">Avg 24-Mo</th><th class="num">Avg 36-Mo</th>
+            <th class="num">Retention</th><th>Trend</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="program-tag">Learn to Skate</span></td><td class="num">1,024</td><td><span class="cell-heat heat-3">$198</span></td><td><span class="cell-heat heat-4">$412</span></td><td><span class="cell-heat heat-5">$881</span></td><td><span class="cell-heat heat-5">$1,284</span></td><td class="num"><span class="badge badge-green">68%</span></td><td style="color:var(--success-text);font-size:16px;">↑</td></tr>
+            <tr><td><span class="program-tag">Private Lessons</span></td><td class="num">487</td><td><span class="cell-heat heat-4">$275</span></td><td><span class="cell-heat heat-4">$520</span></td><td><span class="cell-heat heat-4">$810</span></td><td><span class="cell-heat heat-4">$1,105</span></td><td class="num"><span class="badge badge-green">61%</span></td><td style="color:var(--success-text);font-size:16px;">↑</td></tr>
+            <tr><td><span class="program-tag">Summer Camp</span></td><td class="num">612</td><td><span class="cell-heat heat-3">$220</span></td><td><span class="cell-heat heat-3">$387</span></td><td><span class="cell-heat heat-3">$652</span></td><td><span class="cell-heat heat-4">$963</span></td><td class="num"><span class="badge badge-blue">54%</span></td><td style="color:var(--success-text);font-size:16px;">↑</td></tr>
+            <tr><td><span class="program-tag">Hockey School</span></td><td class="num">391</td><td><span class="cell-heat heat-3">$185</span></td><td><span class="cell-heat heat-3">$340</span></td><td><span class="cell-heat heat-3">$590</span></td><td><span class="cell-heat heat-3">$841</span></td><td class="num"><span class="badge badge-blue">49%</span></td><td style="color:#185FA5;font-size:16px;">→</td></tr>
+            <tr><td><span class="program-tag">Figure Skating</span></td><td class="num">288</td><td><span class="cell-heat heat-2">$145</span></td><td><span class="cell-heat heat-2">$280</span></td><td><span class="cell-heat heat-2">$490</span></td><td><span class="cell-heat heat-3">$734</span></td><td class="num"><span class="badge badge-blue">44%</span></td><td style="color:#185FA5;font-size:16px;">→</td></tr>
+            <tr><td><span class="program-tag">Open Skate</span></td><td class="num">844</td><td><span class="cell-heat heat-1">$88</span></td><td><span class="cell-heat heat-1">$156</span></td><td><span class="cell-heat heat-2">$310</span></td><td><span class="cell-heat heat-2">$528</span></td><td class="num"><span class="badge badge-orange">31%</span></td><td style="color:var(--warning-text);font-size:16px;">↓</td></tr>
+            <tr><td><span class="program-tag">Adult League</span></td><td class="num">423</td><td><span class="cell-heat heat-1">$94</span></td><td><span class="cell-heat heat-1">$178</span></td><td><span class="cell-heat heat-1">$261</span></td><td><span class="cell-heat heat-1">$391</span></td><td class="num"><span class="badge badge-orange">28%</span></td><td style="color:var(--warning-text);font-size:16px;">↓</td></tr>
+            <tr><td><span class="program-tag">Stick &amp; Puck</span></td><td class="num">243</td><td><span class="cell-heat heat-1">$62</span></td><td><span class="cell-heat heat-1">$108</span></td><td><span class="cell-heat heat-1">$194</span></td><td><span class="cell-heat heat-1">$287</span></td><td class="num"><span class="badge badge-orange">22%</span></td><td style="color:var(--warning-text);font-size:16px;">↓</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top customers -->
+      <div class="chart-card">
+        <div class="chart-title">Top Customers by Lifetime Revenue — Community Rec Inc</div>
+        <table class="data-table">
+          <thead><tr>
+            <th class="sort">Customer Name</th><th>Entry Program</th><th>First Registration</th>
+            <th class="num">Total Programs</th><th class="num sort">Total Revenue</th>
+            <th class="num">12-Mo Rev</th><th class="num">36-Mo Rev</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="link">Sarah Mitchell</td><td><span class="program-tag">Learn to Skate</span></td><td>Mar 2021</td><td class="num">14</td><td class="num">$3,840</td><td class="num">$1,120</td><td class="num">$3,220</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td class="link">Jordan Park</td><td><span class="program-tag">Private Lessons</span></td><td>Jun 2021</td><td class="num">11</td><td class="num">$3,190</td><td class="num">$980</td><td class="num">$2,870</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td class="link">Avery Thompson</td><td><span class="program-tag">Learn to Skate</span></td><td>Sep 2020</td><td class="num">17</td><td class="num">$2,950</td><td class="num">$740</td><td class="num">$2,180</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td class="link">Chris Delgado</td><td><span class="program-tag">Summer Camp</span></td><td>Jul 2021</td><td class="num">9</td><td class="num">$2,640</td><td class="num">$820</td><td class="num">$2,100</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td class="link">Morgan Lee</td><td><span class="program-tag">Learn to Skate</span></td><td>Jan 2022</td><td class="num">8</td><td class="num">$2,280</td><td class="num">$910</td><td class="num">$1,840</td><td><span class="badge badge-blue">Re-enrolled</span></td></tr>
+            <tr><td class="link">Taylor Vasquez</td><td><span class="program-tag">Hockey School</span></td><td>Oct 2020</td><td class="num">7</td><td class="num">$1,970</td><td class="num">$560</td><td class="num">$1,620</td><td><span class="badge badge-orange">Lapsed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: PROGRAM PATHING (SANKEY) -->
+    <div class="tab-content" id="tab-pathing">
+      <div class="section-header">
+        <div class="section-icon">🔀</div>
+        <div class="section-header-text">
+          <h1>Program Pathing — Where Do Customers Go Next?</h1>
+          <p>Flow of customers from their first registered program to their second. Width of each band = number of customers.</p>
+        </div>
+      </div>
+
+      <div class="sankey-stat-row">
+        <div class="sankey-stat"><div class="sankey-stat-val">4,312</div><div class="sankey-stat-lbl">Customers with ≥2 Programs</div></div>
+        <div class="sankey-stat"><div class="sankey-stat-val">2,891</div><div class="sankey-stat-lbl">Retained After 1st Program</div></div>
+        <div class="sankey-stat"><div class="sankey-stat-val">67%</div><div class="sankey-stat-lbl">Overall 2nd-Program Rate</div></div>
+        <div class="sankey-stat"><div class="sankey-stat-val">Hockey School</div><div class="sankey-stat-lbl">Most Common 2nd Program</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn-dark">Filters ▾</button>
+        <div class="filter-pill">📅 Jan 2022 – Dec 2024</div>
+        <div class="filter-pill"><select><option>All Organizations</option><option>Community Rec Inc</option><option>TOCA</option><option>Orlando Ice Den</option></select></div>
+        <div class="filter-pill"><select><option>All Entry Programs</option><option>Learn to Skate</option><option>Summer Camp</option><option>Open Skate</option></select></div>
+        <button class="btn-reset">Reset</button>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Customer Flow — Entry Program → 2nd Program</div>
+        <div class="chart-subtitle">Hover any band or node to see the customer count and percentage</div>
+        <svg id="sankey-svg"></svg>
+        <div class="chart-legend" id="sankey-legend"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Top Pathways by Volume</div>
+        <table class="heatmap-table">
+          <thead><tr>
+            <th>Entry Program</th><th>→ 2nd Program</th>
+            <th class="num">Customers</th><th class="num">% of Entry Cohort</th>
+            <th class="num">Avg LTV of Path</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="program-tag">Learn to Skate</span></td><td><span class="program-tag">Private Lessons</span></td><td class="num">320</td><td class="num">31%</td><td class="num" style="color:var(--success-text);font-weight:600;">$1,842</td></tr>
+            <tr><td><span class="program-tag">Open Skate</span></td><td><span class="program-tag">Learn to Skate</span></td><td class="num">220</td><td class="num">26%</td><td class="num" style="color:var(--success-text);font-weight:600;">$1,590</td></tr>
+            <tr><td><span class="program-tag">Summer Camp</span></td><td><span class="program-tag">Hockey School</span></td><td class="num">200</td><td class="num">33%</td><td class="num" style="color:var(--success-text);font-weight:600;">$1,480</td></tr>
+            <tr><td><span class="program-tag">Learn to Skate</span></td><td><span class="program-tag">Hockey School</span></td><td class="num">240</td><td class="num">23%</td><td class="num" style="color:#185FA5;font-weight:600;">$1,310</td></tr>
+            <tr><td><span class="program-tag">Private Lessons</span></td><td><span class="program-tag">Hockey School</span></td><td class="num">160</td><td class="num">33%</td><td class="num" style="color:#185FA5;font-weight:600;">$1,270</td></tr>
+            <tr><td><span class="program-tag">Adult League</span></td><td><span class="program-tag">Stick &amp; Puck</span></td><td class="num">130</td><td class="num">31%</td><td class="num" style="color:var(--warning-text);font-weight:600;">$612</td></tr>
+            <tr><td><span class="program-tag">Open Skate</span></td><td style="color:var(--bo-text-disabled);font-style:italic;font-size:12px;">No 2nd Program</td><td class="num">379</td><td class="num">45%</td><td class="num" style="color:var(--bo-text-disabled);">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- DEEP-DIVE SANKEY -->
+      <div class="chart-card">
+        <div class="chart-title">Full Path Analysis — Multi-Step Program Journey</div>
+        <div class="chart-subtitle">Pick an entry program to trace where customers go at each subsequent registration</div>
+        <div class="deep-selector">
+          <span class="deep-label">Entry Program</span>
+          <div class="deep-pills">
+            <button class="deep-pill active" onclick="selectDeep('Learn to Skate', this)">Learn to Skate</button>
+            <button class="deep-pill" onclick="selectDeep('Summer Camp', this)">Summer Camp</button>
+            <button class="deep-pill" onclick="selectDeep('Private Lessons', this)">Private Lessons</button>
+            <button class="deep-pill" onclick="selectDeep('Open Skate', this)">Open Skate</button>
+            <button class="deep-pill" onclick="selectDeep('Hockey School', this)">Hockey School</button>
+            <button class="deep-pill" onclick="selectDeep('Adult League', this)">Adult League</button>
+          </div>
+        </div>
+        <div class="deep-stats" id="deep-stats"></div>
+        <svg id="deep-sankey-svg"></svg>
+      </div>
+
+    </div>
+
+    <!-- TAB 3: COHORT TIMELINE -->
+    <div class="tab-content" id="tab-timeline">
+      <div class="section-header">
+        <div class="section-icon">📉</div>
+        <div class="section-header-text">
+          <h1>Revenue Accumulation Over Time by Entry Program</h1>
+          <p>Cumulative average revenue per customer, tracked month-by-month from first registration</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn-dark">Filters ▾</button>
+        <div class="filter-pill">📅 Cohort Entry: 2021–2023</div>
+        <div class="filter-pill"><select><option>All Organizations</option><option>Community Rec Inc</option><option>TOCA</option></select></div>
+        <div class="filter-pill"><select><option>All Programs</option><option>Learn to Skate</option><option>Private Lessons</option></select></div>
+        <button class="btn-reset">Reset</button>
+      </div>
+      <div class="chart-card" style="padding-bottom:24px;">
+        <div class="chart-title">Cumulative Avg Revenue — Months Since First Registration</div>
+        <div class="chart-subtitle">Each line represents all customers whose first registration was that program type</div>
+        <svg id="timeline-svg"></svg>
+        <div class="chart-legend" id="timeline-legend"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Key Inflection Points</div>
+        <table class="heatmap-table">
+          <thead><tr>
+            <th>Entry Program</th><th class="num">Month 6</th><th class="num">Month 12</th>
+            <th class="num">Month 18</th><th class="num">Month 24</th><th class="num">Month 36</th>
+            <th>When it accelerates</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="program-tag">Learn to Skate</span></td><td class="num">$198</td><td class="num">$412</td><td class="num">$628</td><td class="num">$793</td><td class="num" style="font-weight:700;">$1,284</td><td style="font-size:12px;color:var(--success-text);">Months 6–18 — kids re-enroll in higher levels</td></tr>
+            <tr><td><span class="program-tag">Private Lessons</span></td><td class="num">$275</td><td class="num">$520</td><td class="num">$705</td><td class="num">$845</td><td class="num" style="font-weight:700;">$1,105</td><td style="font-size:12px;color:var(--success-text);">Months 3–12 — high early spend, steady thereafter</td></tr>
+            <tr><td><span class="program-tag">Summer Camp</span></td><td class="num">$220</td><td class="num">$387</td><td class="num">$534</td><td class="num">$652</td><td class="num" style="font-weight:700;">$963</td><td style="font-size:12px;color:#185FA5;">Months 24–36 — late cross-program enrollment</td></tr>
+            <tr><td><span class="program-tag">Hockey School</span></td><td class="num">$185</td><td class="num">$340</td><td class="num">$468</td><td class="num">$573</td><td class="num" style="font-weight:700;">$841</td><td style="font-size:12px;color:#185FA5;">Steady linear growth throughout</td></tr>
+            <tr><td><span class="program-tag">Open Skate</span></td><td class="num">$88</td><td class="num">$156</td><td class="num">$225</td><td class="num">$289</td><td class="num" style="font-weight:700;">$528</td><td style="font-size:12px;color:var(--warning-text);">Months 24–36 only — most churn before then</td></tr>
+            <tr><td><span class="program-tag">Adult League</span></td><td class="num">$94</td><td class="num">$178</td><td class="num">$238</td><td class="num">$272</td><td class="num" style="font-weight:700;">$391</td><td style="font-size:12px;color:var(--warning-text);">Plateaus after month 18 — low cross-enrollment</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: CUSTOMER EXPLORER -->
+    <div class="tab-content" id="tab-explorer">
+      <div class="section-header">
+        <div class="section-icon">🔎</div>
+        <div class="section-header-text">
+          <h1>Customer Explorer</h1>
+          <p>Search individual customers to see their full program journey and lifetime value</p>
+        </div>
+      </div>
+      <div class="explorer-controls">
+        <input class="search-input" type="text" id="customer-search" placeholder="Search by name, organization, or program…" oninput="filterCustomers()">
+        <select class="explorer-select" id="entry-filter" onchange="filterCustomers()">
+          <option value="">All Entry Programs</option>
+          <option>Learn to Skate</option>
+          <option>Summer Camp</option>
+          <option>Private Lessons</option>
+          <option>Open Skate</option>
+          <option>Adult League</option>
+          <option>Hockey School</option>
+        </select>
+        <select class="explorer-select" id="status-filter" onchange="filterCustomers()">
+          <option value="">All Statuses</option>
+          <option>Active</option>
+          <option>Lapsed</option>
+          <option>Re-enrolled</option>
+        </select>
+      </div>
+      <div class="chart-card" style="padding:0; overflow:hidden;">
+        <table class="data-table">
+          <thead><tr>
+            <th class="sort">Customer</th>
+            <th>Organization</th>
+            <th>Entry Program</th>
+            <th>Program Journey</th>
+            <th class="num">Programs</th>
+            <th class="num sort">Total Spend</th>
+            <th class="num">Yrs Active</th>
+            <th>Status</th>
+          </tr></thead>
+          <tbody id="customer-table-body"></tbody>
+        </table>
+        <div class="no-results" id="no-results" style="display:none;">No customers match your search.</div>
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /main -->
+
+<div class="sankey-tooltip" id="sankey-tooltip"></div>
+
+<script>
+// ─── TAB SWITCHING ─────────────────────────────────────────────────────────
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
+let sankeyRendered = false, timelineRendered = false;
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const id = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+    if (id === 'pathing' && !sankeyRendered) { renderSankey(); sankeyRendered = true; }
+    if (id === 'timeline' && !timelineRendered) { renderTimeline(); timelineRendered = true; }
+  });
+});
+
+// ─── SANKEY DATA ───────────────────────────────────────────────────────────
+const PROGRAM_COLORS = {
+  'Learn to Skate':  '#0D4774',
+  'Summer Camp':     '#C9A84C',
+  'Private Lessons': '#185FA5',
+  'Open Skate':      '#0F6E56',
+  'Adult League':    '#854F0B',
+  'Hockey School':   '#1A5C8A',
+};
+
+const sankeyNodes = [
+  // Entry (left)
+  { name: 'Learn to Skate' },   // 0
+  { name: 'Summer Camp' },      // 1
+  { name: 'Private Lessons' },  // 2
+  { name: 'Open Skate' },       // 3
+  { name: 'Adult League' },     // 4
+  { name: 'Hockey School' },    // 5
+  // 2nd program (right)
+  { name: 'Private Lessons' },  // 6
+  { name: 'Hockey School' },    // 7
+  { name: 'Figure Skating' },   // 8
+  { name: 'Learn to Skate' },   // 9
+  { name: 'Open Skate' },       // 10
+  { name: 'Summer Camp' },      // 11
+  { name: 'Stick & Puck' },     // 12
+  { name: 'No 2nd Program' },   // 13
+];
+
+const sankeyLinks = [
+  // From Learn to Skate (0)
+  { source: 0, target: 6, value: 320, label: 'LTS → Private Lessons' },
+  { source: 0, target: 7, value: 240, label: 'LTS → Hockey School' },
+  { source: 0, target: 8, value: 155, label: 'LTS → Figure Skating' },
+  { source: 0, target: 11, value: 120, label: 'LTS → Summer Camp' },
+  { source: 0, target: 13, value: 189, label: 'LTS → No 2nd Program' },
+  // From Summer Camp (1)
+  { source: 1, target: 7, value: 200, label: 'Summer Camp → Hockey School' },
+  { source: 1, target: 9, value: 175, label: 'Summer Camp → Learn to Skate' },
+  { source: 1, target: 6, value: 125, label: 'Summer Camp → Private Lessons' },
+  { source: 1, target: 13, value: 112, label: 'Summer Camp → No 2nd Program' },
+  // From Private Lessons (2)
+  { source: 2, target: 7, value: 160, label: 'Private Lessons → Hockey School' },
+  { source: 2, target: 8, value: 130, label: 'Private Lessons → Figure Skating' },
+  { source: 2, target: 10, value: 85,  label: 'Private Lessons → Open Skate' },
+  { source: 2, target: 13, value: 112, label: 'Private Lessons → No 2nd Program' },
+  // From Open Skate (3)
+  { source: 3, target: 9, value: 220, label: 'Open Skate → Learn to Skate' },
+  { source: 3, target: 10, value: 150, label: 'Open Skate → Open Skate (repeat)' },
+  { source: 3, target: 12, value: 95,  label: 'Open Skate → Stick & Puck' },
+  { source: 3, target: 13, value: 379, label: 'Open Skate → No 2nd Program' },
+  // From Adult League (4)
+  { source: 4, target: 12, value: 130, label: 'Adult League → Stick & Puck' },
+  { source: 4, target: 10, value: 115, label: 'Adult League → Open Skate' },
+  { source: 4, target: 7, value: 80,   label: 'Adult League → Hockey School' },
+  { source: 4, target: 13, value: 98,  label: 'Adult League → No 2nd Program' },
+  // From Hockey School (5)
+  { source: 5, target: 7, value: 145, label: 'Hockey School → Hockey School (cont.)' },
+  { source: 5, target: 6, value: 105, label: 'Hockey School → Private Lessons' },
+  { source: 5, target: 12, value: 75,  label: 'Hockey School → Stick & Puck' },
+  { source: 5, target: 13, value: 66,  label: 'Hockey School → No 2nd Program' },
+];
+
+function renderSankey() {
+  const container = document.getElementById('sankey-svg');
+  const W = container.parentElement.clientWidth - 40;
+  const H = 480;
+  const margin = { top: 20, right: 160, bottom: 10, left: 140 };
+
+  container.setAttribute('height', H);
+
+  const svg = d3.select('#sankey-svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', W).attr('height', H);
+
+  const sankey = d3.sankey()
+    .nodeId((d, i) => i)
+    .nodeWidth(14)
+    .nodePadding(14)
+    .extent([[margin.left, margin.top], [W - margin.right, H - margin.bottom]]);
+
+  const graph = sankey({
+    nodes: sankeyNodes.map((d, i) => ({ ...d, id: i })),
+    links: sankeyLinks.map(d => ({ ...d }))
+  });
+
+  // Source color lookup by node
+  const entryNames = ['Learn to Skate', 'Summer Camp', 'Private Lessons', 'Open Skate', 'Adult League', 'Hockey School'];
+  const getNodeColor = (node) => {
+    const name = node.name;
+    if (PROGRAM_COLORS[name] && node.x0 < W / 2) return PROGRAM_COLORS[name];
+    if (name === 'No 2nd Program') return '#D1D5DB';
+    return '#94A3B8';
+  };
+  const getLinkColor = (link) => {
+    const srcName = graph.nodes[link.source.index]?.name || link.source.name;
+    return PROGRAM_COLORS[srcName] || '#94A3B8';
+  };
+
+  const tooltip = document.getElementById('sankey-tooltip');
+
+  // Column labels
+  svg.append('text').attr('x', margin.left + 7).attr('y', 12)
+    .attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 700)
+    .attr('fill', '#4A4A4A').attr('font-family', 'Inter, sans-serif')
+    .text('Entry Program');
+  svg.append('text').attr('x', W - margin.right + 7).attr('y', 12)
+    .attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 700)
+    .attr('fill', '#4A4A4A').attr('font-family', 'Inter, sans-serif')
+    .text('2nd Program');
+
+  // Links
+  svg.append('g').attr('fill', 'none')
+    .selectAll('path')
+    .data(graph.links)
+    .join('path')
+      .attr('d', d3.sankeyLinkHorizontal())
+      .attr('stroke', d => getLinkColor(d))
+      .attr('stroke-width', d => Math.max(1, d.width))
+      .attr('stroke-opacity', 0.35)
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('stroke-opacity', 0.65);
+        const srcName = d.source.name;
+        const tgtName = d.target.name;
+        const srcTotal = d3.sum(graph.links.filter(l => l.source.index === d.source.index), l => l.value);
+        const pct = Math.round((d.value / srcTotal) * 100);
+        tooltip.style.opacity = '1';
+        tooltip.innerHTML = `<strong>${srcName}</strong> → <strong>${tgtName}</strong><br>${d.value.toLocaleString()} customers&nbsp;&nbsp;<span style="opacity:0.7">(${pct}% of ${srcName})</span>`;
+      })
+      .on('mousemove', event => {
+        tooltip.style.left = (event.clientX + 12) + 'px';
+        tooltip.style.top = (event.clientY - 36) + 'px';
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('stroke-opacity', 0.35);
+        tooltip.style.opacity = '0';
+      });
+
+  // Nodes
+  const nodeGroup = svg.append('g')
+    .selectAll('g')
+    .data(graph.nodes)
+    .join('g')
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        const total = d.value;
+        tooltip.style.opacity = '1';
+        tooltip.innerHTML = `<strong>${d.name}</strong><br>${total.toLocaleString()} customers`;
+      })
+      .on('mousemove', event => {
+        tooltip.style.left = (event.clientX + 12) + 'px';
+        tooltip.style.top = (event.clientY - 36) + 'px';
+      })
+      .on('mouseout', () => { tooltip.style.opacity = '0'; });
+
+  nodeGroup.append('rect')
+    .attr('x', d => d.x0).attr('y', d => d.y0)
+    .attr('width', d => d.x1 - d.x0)
+    .attr('height', d => Math.max(1, d.y1 - d.y0))
+    .attr('fill', d => getNodeColor(d))
+    .attr('rx', 3);
+
+  // Left labels
+  nodeGroup.filter(d => d.x0 < W / 2)
+    .append('text')
+      .attr('x', d => d.x0 - 8).attr('y', d => (d.y0 + d.y1) / 2)
+      .attr('dy', '0.35em').attr('text-anchor', 'end')
+      .attr('font-size', 12).attr('font-weight', 600)
+      .attr('fill', d => getNodeColor(d))
+      .attr('font-family', 'Inter, sans-serif')
+      .text(d => d.name);
+
+  nodeGroup.filter(d => d.x0 < W / 2)
+    .append('text')
+      .attr('x', d => d.x0 - 8).attr('y', d => (d.y0 + d.y1) / 2 + 14)
+      .attr('dy', '0.35em').attr('text-anchor', 'end')
+      .attr('font-size', 10).attr('fill', '#B0B0B0')
+      .attr('font-family', 'Inter, sans-serif')
+      .text(d => d.value.toLocaleString() + ' customers');
+
+  // Right labels
+  nodeGroup.filter(d => d.x0 >= W / 2)
+    .append('text')
+      .attr('x', d => d.x1 + 8).attr('y', d => (d.y0 + d.y1) / 2)
+      .attr('dy', '0.35em').attr('text-anchor', 'start')
+      .attr('font-size', 12).attr('font-weight', 600)
+      .attr('fill', d => d.name === 'No 2nd Program' ? '#B0B0B0' : '#1A1A1A')
+      .attr('font-family', 'Inter, sans-serif')
+      .text(d => d.name);
+
+  nodeGroup.filter(d => d.x0 >= W / 2)
+    .append('text')
+      .attr('x', d => d.x1 + 8).attr('y', d => (d.y0 + d.y1) / 2 + 14)
+      .attr('dy', '0.35em').attr('text-anchor', 'start')
+      .attr('font-size', 10).attr('fill', '#B0B0B0')
+      .attr('font-family', 'Inter, sans-serif')
+      .text(d => d.value.toLocaleString() + ' customers');
+
+  // Legend
+  const legend = document.getElementById('sankey-legend');
+  legend.innerHTML = entryNames.map(n =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${PROGRAM_COLORS[n]};"></div>${n}</div>`
+  ).join('') + `<div class="legend-item"><div class="legend-dot" style="background:#D1D5DB;"></div>No 2nd Program</div>`;
+}
+
+// ─── COHORT TIMELINE (LINE CHART) ─────────────────────────────────────────
+const months = [0,3,6,9,12,15,18,21,24,27,30,33,36];
+const cohortLines = [
+  { name: 'Learn to Skate',  color: '#0D4774', dash: null,    values: [0,95,198,295,412,520,628,718,793,858,920,1010,1284] },
+  { name: 'Private Lessons', color: '#185FA5', dash: null,    values: [0,138,275,400,520,620,705,790,845,900,960,1035,1105] },
+  { name: 'Summer Camp',     color: '#C9A84C', dash: null,    values: [0,110,220,300,387,468,534,600,652,712,762,855,963] },
+  { name: 'Hockey School',   color: '#1A5C8A', dash: '6,3',   values: [0,90,185,265,340,408,468,524,573,620,668,754,841] },
+  { name: 'Open Skate',      color: '#0F6E56', dash: '4,4',   values: [0,44,88,120,156,193,225,256,289,330,375,450,528] },
+  { name: 'Adult League',    color: '#B0B0B0', dash: '3,3',   values: [0,47,94,138,178,211,238,258,272,285,310,350,391] },
+];
+
+function renderTimeline() {
+  const container = document.getElementById('timeline-svg');
+  const W = container.parentElement.clientWidth - 40;
+  const H = 340;
+  const margin = { top: 20, right: 120, bottom: 40, left: 60 };
+  const innerW = W - margin.left - margin.right;
+  const innerH = H - margin.top - margin.bottom;
+
+  const svg = d3.select('#timeline-svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', W).attr('height', H);
+
+  const x = d3.scaleLinear().domain([0, 36]).range([0, innerW]);
+  const y = d3.scaleLinear().domain([0, 1400]).range([innerH, 0]);
+
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  // Grid
+  g.append('g').attr('class', 'grid')
+    .selectAll('line')
+    .data(y.ticks(7))
+    .join('line')
+      .attr('x1', 0).attr('x2', innerW)
+      .attr('y1', d => y(d)).attr('y2', d => y(d))
+      .attr('stroke', '#E2E8F0').attr('stroke-dasharray', '3,3');
+
+  // Avg line annotation
+  g.append('line')
+    .attr('x1', 0).attr('x2', innerW)
+    .attr('y1', y(847)).attr('y2', y(847))
+    .attr('stroke', '#B0B0B0').attr('stroke-dasharray', '5,5').attr('stroke-width', 1);
+  g.append('text').attr('x', innerW + 4).attr('y', y(847) + 4)
+    .attr('font-size', 10).attr('fill', '#B0B0B0').attr('font-family', 'Inter, sans-serif')
+    .text('Avg $847');
+
+  // X axis
+  g.append('g').attr('transform', `translate(0,${innerH})`)
+    .call(d3.axisBottom(x).tickValues([0,6,12,18,24,30,36]).tickFormat(d => `Mo ${d}`))
+    .call(ax => ax.select('.domain').remove())
+    .call(ax => ax.selectAll('.tick line').attr('stroke', '#E2E8F0'))
+    .call(ax => ax.selectAll('text').attr('font-size', 11).attr('fill', '#4A4A4A').attr('font-family', 'Inter, sans-serif'));
+
+  // Y axis
+  g.append('g')
+    .call(d3.axisLeft(y).ticks(7).tickFormat(d => d === 0 ? '$0' : `$${d3.format(',')(d)}`))
+    .call(ax => ax.select('.domain').remove())
+    .call(ax => ax.selectAll('.tick line').remove())
+    .call(ax => ax.selectAll('text').attr('font-size', 11).attr('fill', '#4A4A4A').attr('font-family', 'Inter, sans-serif'));
+
+  // X axis label
+  g.append('text').attr('x', innerW / 2).attr('y', innerH + 36)
+    .attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', '#4A4A4A')
+    .attr('font-family', 'Inter, sans-serif').text('Months Since First Registration');
+
+  // Lines
+  const line = d3.line()
+    .x((d, i) => x(months[i]))
+    .y(d => y(d))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  cohortLines.forEach(series => {
+    const path = g.append('path')
+      .datum(series.values)
+      .attr('fill', 'none')
+      .attr('stroke', series.color)
+      .attr('stroke-width', 2)
+      .attr('d', line);
+    if (series.dash) path.attr('stroke-dasharray', series.dash);
+
+    // End label
+    const lastVal = series.values[series.values.length - 1];
+    g.append('text')
+      .attr('x', x(36) + 6)
+      .attr('y', y(lastVal) + 4)
+      .attr('font-size', 11).attr('font-weight', 600)
+      .attr('fill', series.color)
+      .attr('font-family', 'Inter, sans-serif')
+      .text(`$${lastVal.toLocaleString()}`);
+  });
+
+  // Legend
+  const legend = document.getElementById('timeline-legend');
+  legend.innerHTML = cohortLines.map(s =>
+    `<div class="legend-item"><div class="legend-line" style="background:${s.color};${s.dash ? 'opacity:0.6;' : ''}"></div>${s.name}</div>`
+  ).join('');
+}
+
+// ─── CUSTOMER EXPLORER ────────────────────────────────────────────────────
+const CUSTOMERS = [
+  { name:'Sarah Mitchell',   org:'Community Rec Inc', entry:'Learn to Skate', journey:['Learn to Skate','Private Lessons','Figure Skating','LTS Advanced','Competitive Skating'], spend:3840, years:3.8, status:'Active' },
+  { name:'Jordan Park',      org:'Community Rec Inc', entry:'Private Lessons', journey:['Private Lessons','Hockey School','Competitive','Stick & Puck'], spend:3190, years:3.2, status:'Active' },
+  { name:'Avery Thompson',   org:'Orlando Ice Den',   entry:'Learn to Skate', journey:['Learn to Skate','Hockey School','Summer Camp','Hockey School','Private Lessons'], spend:2950, years:4.1, status:'Active' },
+  { name:'Chris Delgado',    org:'Community Rec Inc', entry:'Summer Camp',    journey:['Summer Camp','Hockey School','Private Lessons','Adult League'], spend:2640, years:3.0, status:'Active' },
+  { name:'Morgan Lee',       org:'TOCA',              entry:'Learn to Skate', journey:['Learn to Skate','Private Lessons','LTS Advanced'], spend:2280, years:2.7, status:'Re-enrolled' },
+  { name:'Taylor Vasquez',   org:'Orlando Ice Den',   entry:'Hockey School',  journey:['Hockey School','Stick & Puck','Open Skate'], spend:1970, years:2.2, status:'Lapsed' },
+  { name:'Riley Nguyen',     org:'Community Rec Inc', entry:'Summer Camp',    journey:['Summer Camp','Learn to Skate','Figure Skating','Private Lessons'], spend:1840, years:2.5, status:'Active' },
+  { name:'Casey O\'Brien',   org:'TOCA',              entry:'Open Skate',     journey:['Open Skate','Learn to Skate','Private Lessons'], spend:1710, years:2.0, status:'Active' },
+  { name:'Drew Kaplan',      org:'Orlando Ice Den',   entry:'Private Lessons',journey:['Private Lessons','Hockey School','Competitive'], spend:1580, years:1.8, status:'Active' },
+  { name:'Quinn Patel',      org:'Community Rec Inc', entry:'Learn to Skate', journey:['Learn to Skate','Summer Camp','Hockey School'], spend:1420, years:2.1, status:'Active' },
+  { name:'Alex Rivera',      org:'TOCA',              entry:'Adult League',    journey:['Adult League','Stick & Puck','Open Skate'], spend:980, years:1.5, status:'Lapsed' },
+  { name:'Jamie Kowalski',   org:'Community Rec Inc', entry:'Open Skate',     journey:['Open Skate','Learn to Skate'], spend:870, years:1.2, status:'Re-enrolled' },
+  { name:'Sam Okafor',       org:'Orlando Ice Den',   entry:'Hockey School',  journey:['Hockey School','Private Lessons'], spend:790, years:0.9, status:'Active' },
+  { name:'Blake Hernandez',  org:'TOCA',              entry:'Summer Camp',    journey:['Summer Camp','Open Skate'], spend:610, years:0.8, status:'Lapsed' },
+  { name:'Reese Watanabe',   org:'Community Rec Inc', entry:'Open Skate',     journey:['Open Skate'], spend:220, years:0.5, status:'Lapsed' },
+];
+
+function renderCustomers(list) {
+  const tbody = document.getElementById('customer-table-body');
+  const noResults = document.getElementById('no-results');
+  if (!list.length) {
+    tbody.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+  tbody.innerHTML = list.map(c => {
+    const statusClass = c.status === 'Active' ? 'badge-green' : c.status === 'Re-enrolled' ? 'badge-blue' : 'badge-orange';
+    const chips = c.journey.map((p, i) =>
+      i === 0
+        ? `<span class="journey-chip" style="background:#EEF4FB;color:var(--bo-primary);">${p}</span>`
+        : `<span class="journey-arrow">→</span><span class="journey-chip">${p}</span>`
+    ).join('');
+    return `<tr>
+      <td class="link">${c.name}</td>
+      <td style="font-size:12px;color:var(--bo-text-body);">${c.org}</td>
+      <td><span class="program-tag">${c.entry}</span></td>
+      <td><div class="journey-chips">${chips}</div></td>
+      <td class="num">${c.journey.length}</td>
+      <td class="num" style="font-weight:600;">$${c.spend.toLocaleString()}</td>
+      <td class="num">${c.years.toFixed(1)}</td>
+      <td><span class="badge ${statusClass}">${c.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterCustomers() {
+  const q = document.getElementById('customer-search').value.toLowerCase();
+  const entry = document.getElementById('entry-filter').value;
+  const status = document.getElementById('status-filter').value;
+  const filtered = CUSTOMERS.filter(c => {
+    const matchText = !q || c.name.toLowerCase().includes(q) || c.org.toLowerCase().includes(q) || c.journey.some(p => p.toLowerCase().includes(q));
+    const matchEntry = !entry || c.entry === entry;
+    const matchStatus = !status || c.status === status;
+    return matchText && matchEntry && matchStatus;
+  });
+  renderCustomers(filtered);
+}
+
+renderCustomers(CUSTOMERS);
+
+// ─── DEEP-DIVE SANKEY DATA ─────────────────────────────────────────────────
+const DEEP = {
+  'Learn to Skate': {
+    total: 1024, color: '#0D4774',
+    steps: ['Entry', '2nd Program', '3rd Program', '4th Program'],
+    stats: [
+      { val: '82%', lbl: '2nd Program Rate' },
+      { val: '69%', lbl: '3rd Program Rate' },
+      { val: '53%', lbl: '4th Program Rate' },
+      { val: 'LTS → Private Lessons → Competitive', lbl: 'Highest-Value Path' },
+    ],
+    nodes: [
+      { id:'lts0', name:'Learn to Skate' },
+      { id:'pl1',  name:'Private Lessons' },  { id:'hs1',  name:'Hockey School' },
+      { id:'fig1', name:'Figure Skating' },   { id:'sc1',  name:'Summer Camp' },
+      { id:'cx1',  name:'Stopped Here' },
+      { id:'comp2',name:'Competitive' },      { id:'hs2',  name:'Hockey School' },
+      { id:'fig2', name:'Figure Skating' },   { id:'pl2',  name:'Private Lessons' },
+      { id:'sp2',  name:'Stick & Puck' },     { id:'os2',  name:'Open Skate' },
+      { id:'cx2',  name:'Stopped Here' },
+      { id:'club3',name:'Club Team' },        { id:'hs3',  name:'Hockey School' },
+      { id:'comp3',name:'Competitive' },      { id:'sp3',  name:'Stick & Puck' },
+      { id:'pl3',  name:'Private Lessons' },  { id:'cx3',  name:'Stopped Here' },
+    ],
+    links: [
+      { source:'lts0', target:'pl1',  value:320 }, { source:'lts0', target:'hs1',  value:240 },
+      { source:'lts0', target:'fig1', value:155 }, { source:'lts0', target:'sc1',  value:120 },
+      { source:'lts0', target:'cx1',  value:189 },
+      { source:'pl1',  target:'comp2',value:95  }, { source:'pl1',  target:'hs2',  value:110 },
+      { source:'pl1',  target:'fig2', value:75  }, { source:'pl1',  target:'cx2',  value:40  },
+      { source:'hs1',  target:'comp2',value:95  }, { source:'hs1',  target:'sp2',  value:75  },
+      { source:'hs1',  target:'pl2',  value:45  }, { source:'hs1',  target:'cx2',  value:25  },
+      { source:'fig1', target:'comp2',value:70  }, { source:'fig1', target:'pl2',  value:50  },
+      { source:'fig1', target:'cx2',  value:35  },
+      { source:'sc1',  target:'hs2',  value:55  }, { source:'sc1',  target:'os2',  value:40  },
+      { source:'sc1',  target:'cx2',  value:25  },
+      { source:'comp2',target:'club3',value:130 }, { source:'comp2',target:'hs3',  value:80  },
+      { source:'comp2',target:'cx3',  value:50  },
+      { source:'hs2',  target:'sp3',  value:60  }, { source:'hs2',  target:'pl3',  value:50  },
+      { source:'hs2',  target:'cx3',  value:55  },
+      { source:'fig2', target:'comp3',value:35  }, { source:'fig2', target:'pl3',  value:25  },
+      { source:'fig2', target:'cx3',  value:15  },
+      { source:'pl2',  target:'hs3',  value:40  }, { source:'pl2',  target:'comp3',value:30  },
+      { source:'pl2',  target:'cx3',  value:25  },
+      { source:'sp2',  target:'hs3',  value:35  }, { source:'sp2',  target:'cx3',  value:40  },
+      { source:'os2',  target:'club3',value:20  }, { source:'os2',  target:'cx3',  value:20  },
+    ]
+  },
+  'Summer Camp': {
+    total: 612, color: '#C9A84C',
+    steps: ['Entry', '2nd Program', '3rd Program'],
+    stats: [
+      { val: '82%', lbl: '2nd Program Rate' },
+      { val: '64%', lbl: '3rd Program Rate' },
+      { val: 'Summer Camp → Hockey School → Competitive', lbl: 'Most Common 3-Step Path' },
+      { val: '$1,310', lbl: 'Avg LTV (3+ Programs)' },
+    ],
+    nodes: [
+      { id:'sc0',   name:'Summer Camp' },
+      { id:'hs1',   name:'Hockey School' }, { id:'lts1',  name:'Learn to Skate' },
+      { id:'pl1',   name:'Private Lessons'},{ id:'cx1',   name:'Stopped Here' },
+      { id:'comp2', name:'Competitive' },   { id:'hs2',   name:'Hockey School' },
+      { id:'pl2',   name:'Private Lessons'},{ id:'fig2',  name:'Figure Skating' },
+      { id:'sp2',   name:'Stick & Puck' }, { id:'cx2',   name:'Stopped Here' },
+    ],
+    links: [
+      { source:'sc0',  target:'hs1',  value:200 }, { source:'sc0',  target:'lts1', value:175 },
+      { source:'sc0',  target:'pl1',  value:125 }, { source:'sc0',  target:'cx1',  value:112 },
+      { source:'hs1',  target:'comp2',value:85  }, { source:'hs1',  target:'sp2',  value:65  },
+      { source:'hs1',  target:'pl2',  value:30  }, { source:'hs1',  target:'cx2',  value:20  },
+      { source:'lts1', target:'pl2',  value:75  }, { source:'lts1', target:'fig2', value:55  },
+      { source:'lts1', target:'hs2',  value:25  }, { source:'lts1', target:'cx2',  value:20  },
+      { source:'pl1',  target:'hs2',  value:55  }, { source:'pl1',  target:'fig2', value:40  },
+      { source:'pl1',  target:'comp2',value:20  }, { source:'pl1',  target:'cx2',  value:10  },
+    ]
+  },
+  'Private Lessons': {
+    total: 487, color: '#185FA5',
+    steps: ['Entry', '2nd Program', '3rd Program'],
+    stats: [
+      { val: '77%', lbl: '2nd Program Rate' },
+      { val: '61%', lbl: '3rd Program Rate' },
+      { val: 'Lessons → Hockey School → Competitive', lbl: 'Most Common Path' },
+      { val: '$1,640', lbl: 'Avg LTV (3+ Programs)' },
+    ],
+    nodes: [
+      { id:'pl0',   name:'Private Lessons' },
+      { id:'hs1',   name:'Hockey School' }, { id:'fig1',  name:'Figure Skating' },
+      { id:'os1',   name:'Open Skate' },    { id:'cx1',   name:'Stopped Here' },
+      { id:'comp2', name:'Competitive' },   { id:'club2', name:'Club Team' },
+      { id:'lts2',  name:'Learn to Skate'},{ id:'pl2',   name:'Private Lessons' },
+      { id:'cx2',   name:'Stopped Here' },
+    ],
+    links: [
+      { source:'pl0',  target:'hs1',  value:160 }, { source:'pl0',  target:'fig1', value:130 },
+      { source:'pl0',  target:'os1',  value:85  }, { source:'pl0',  target:'cx1',  value:112 },
+      { source:'hs1',  target:'comp2',value:85  }, { source:'hs1',  target:'club2',value:45  },
+      { source:'hs1',  target:'cx2',  value:30  },
+      { source:'fig1', target:'comp2',value:60  }, { source:'fig1', target:'pl2',  value:45  },
+      { source:'fig1', target:'cx2',  value:25  },
+      { source:'os1',  target:'lts2', value:40  }, { source:'os1',  target:'cx2',  value:45  },
+    ]
+  },
+  'Open Skate': {
+    total: 844, color: '#0F6E56',
+    steps: ['Entry', '2nd Program', '3rd Program'],
+    stats: [
+      { val: '55%', lbl: '2nd Program Rate' },
+      { val: '38%', lbl: '3rd Program Rate' },
+      { val: 'Open Skate → Learn to Skate → Private Lessons', lbl: 'Highest-Value Path' },
+      { val: '$1,590', lbl: 'Avg LTV of That Path' },
+    ],
+    nodes: [
+      { id:'os0',  name:'Open Skate' },
+      { id:'lts1', name:'Learn to Skate' },{ id:'os1',  name:'Open Skate' },
+      { id:'sp1',  name:'Stick & Puck' },  { id:'cx1',  name:'Stopped Here' },
+      { id:'pl2',  name:'Private Lessons'},{ id:'hs2',  name:'Hockey School' },
+      { id:'fig2', name:'Figure Skating'}, { id:'lts2', name:'Learn to Skate' },
+      { id:'sp2',  name:'Stick & Puck' }, { id:'al2',  name:'Adult League' },
+      { id:'cx2',  name:'Stopped Here' },
+    ],
+    links: [
+      { source:'os0',  target:'lts1', value:220 }, { source:'os0',  target:'os1',  value:150 },
+      { source:'os0',  target:'sp1',  value:95  }, { source:'os0',  target:'cx1',  value:379 },
+      { source:'lts1', target:'pl2',  value:88  }, { source:'lts1', target:'fig2', value:66  },
+      { source:'lts1', target:'hs2',  value:44  }, { source:'lts1', target:'cx2',  value:22  },
+      { source:'os1',  target:'lts2', value:60  }, { source:'os1',  target:'sp2',  value:50  },
+      { source:'os1',  target:'cx2',  value:40  },
+      { source:'sp1',  target:'al2',  value:50  }, { source:'sp1',  target:'hs2',  value:30  },
+      { source:'sp1',  target:'cx2',  value:15  },
+    ]
+  },
+  'Hockey School': {
+    total: 391, color: '#1A5C8A',
+    steps: ['Entry', '2nd Program', '3rd Program'],
+    stats: [
+      { val: '83%', lbl: '2nd Program Rate' },
+      { val: '65%', lbl: '3rd Program Rate' },
+      { val: 'HS → HS (Continuing) → Competitive', lbl: 'Most Common Path' },
+      { val: '$1,190', lbl: 'Avg LTV (3+ Programs)' },
+    ],
+    nodes: [
+      { id:'hs0',   name:'Hockey School' },
+      { id:'cont1', name:'Hockey School' }, { id:'pl1',   name:'Private Lessons' },
+      { id:'sp1',   name:'Stick & Puck' }, { id:'cx1',   name:'Stopped Here' },
+      { id:'comp2', name:'Competitive' },   { id:'club2', name:'Club Team' },
+      { id:'sp2',   name:'Stick & Puck' }, { id:'pl2',   name:'Private Lessons' },
+      { id:'cx2',   name:'Stopped Here' },
+    ],
+    links: [
+      { source:'hs0',   target:'cont1',value:145 }, { source:'hs0',   target:'pl1',  value:105 },
+      { source:'hs0',   target:'sp1',  value:75  }, { source:'hs0',   target:'cx1',  value:66  },
+      { source:'cont1', target:'comp2',value:75  }, { source:'cont1', target:'club2',value:45  },
+      { source:'cont1', target:'cx2',  value:25  },
+      { source:'pl1',   target:'comp2',value:50  }, { source:'pl1',   target:'sp2',  value:35  },
+      { source:'pl1',   target:'cx2',  value:20  },
+      { source:'sp1',   target:'pl2',  value:35  }, { source:'sp1',   target:'cx2',  value:40  },
+    ]
+  },
+  'Adult League': {
+    total: 423, color: '#854F0B',
+    steps: ['Entry', '2nd Program'],
+    stats: [
+      { val: '77%', lbl: '2nd Program Rate' },
+      { val: 'Adult League → Stick & Puck', lbl: 'Most Common Path (31%)' },
+      { val: 'Low cross-category', lbl: 'Pattern' },
+      { val: '$612', lbl: 'Avg LTV (2+ Programs)' },
+    ],
+    nodes: [
+      { id:'al0', name:'Adult League' },
+      { id:'sp1', name:'Stick & Puck' }, { id:'os1', name:'Open Skate' },
+      { id:'hs1', name:'Hockey School'},  { id:'cx1', name:'Stopped Here' },
+    ],
+    links: [
+      { source:'al0', target:'sp1', value:130 }, { source:'al0', target:'os1', value:115 },
+      { source:'al0', target:'hs1', value:80  }, { source:'al0', target:'cx1', value:98  },
+    ]
+  },
+};
+
+// ─── DEEP-DIVE RENDER ──────────────────────────────────────────────────────
+function selectDeep(program, el) {
+  document.querySelectorAll('.deep-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderDeepSankey(program);
+}
+
+function renderDeepSankey(program) {
+  const data = DEEP[program];
+  if (!data) return;
+
+  // Stats bar
+  document.getElementById('deep-stats').innerHTML = data.stats.map(s =>
+    `<div class="deep-stat"><div class="deep-stat-val">${s.val}</div><div class="deep-stat-lbl">${s.lbl}</div></div>`
+  ).join('');
+
+  const svgEl = document.getElementById('deep-sankey-svg');
+  svgEl.innerHTML = '';
+
+  const W = svgEl.parentElement.clientWidth - 40;
+  const H = data.steps.length >= 4 ? 500 : data.steps.length === 2 ? 220 : 400;
+  const margin = { top: 28, right: 170, bottom: 8, left: 160 };
+
+  svgEl.setAttribute('height', H);
+  const svg = d3.select('#deep-sankey-svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', W).attr('height', H);
+
+  const sankey = d3.sankey()
+    .nodeId(d => d.id)
+    .nodeAlign(d3.sankeyLeft)
+    .nodeWidth(13)
+    .nodePadding(11)
+    .extent([[margin.left, margin.top], [W - margin.right, H - margin.bottom]]);
+
+  const graph = sankey({
+    nodes: data.nodes.map(d => ({ ...d })),
+    links: data.links.map(d => ({ ...d }))
+  });
+
+  const entryColor = data.color;
+  const isChurn = n => n.name === 'Stopped Here';
+  const isEntry = n => n.id === data.nodes[0].id;
+
+  // Unique x positions → column labels
+  const xCols = [...new Set(graph.nodes.map(n => Math.round(n.x0)))].sort((a, b) => a - b);
+  data.steps.forEach((label, i) => {
+    if (xCols[i] == null) return;
+    svg.append('text')
+      .attr('x', xCols[i] + 6.5).attr('y', 13)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 9).attr('font-weight', 700).attr('letter-spacing', '0.07em')
+      .attr('fill', '#B0B0B0').attr('font-family', 'Inter, sans-serif')
+      .text(label.toUpperCase());
+  });
+
+  const tooltip = document.getElementById('sankey-tooltip');
+
+  // Links
+  svg.append('g').attr('fill', 'none')
+    .selectAll('path')
+    .data(graph.links)
+    .join('path')
+      .attr('d', d3.sankeyLinkHorizontal())
+      .attr('stroke', entryColor)
+      .attr('stroke-width', d => Math.max(1, d.width))
+      .attr('stroke-opacity', 0.22)
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('stroke-opacity', 0.6);
+        const srcTotal = d3.sum(graph.links.filter(l => l.source.id === d.source.id), l => l.value);
+        const ofEntry = Math.round((d.value / data.total) * 100);
+        const ofSrc   = Math.round((d.value / srcTotal) * 100);
+        tooltip.style.opacity = '1';
+        tooltip.innerHTML =
+          `<strong>${d.source.name}</strong> → <strong>${d.target.name}</strong><br>` +
+          `${d.value.toLocaleString()} customers<br>` +
+          `<span style="opacity:.7">${ofSrc}% of that step · ${ofEntry}% of all ${program}</span>`;
+      })
+      .on('mousemove', e => { tooltip.style.left = (e.clientX+12)+'px'; tooltip.style.top = (e.clientY-44)+'px'; })
+      .on('mouseout', function() { d3.select(this).attr('stroke-opacity', 0.22); tooltip.style.opacity='0'; });
+
+  // Nodes
+  const nodeG = svg.append('g')
+    .selectAll('g')
+    .data(graph.nodes)
+    .join('g')
+    .style('cursor', 'default')
+    .on('mouseover', (event, d) => {
+      const pct = Math.round((d.value / data.total) * 100);
+      tooltip.style.opacity = '1';
+      tooltip.innerHTML = `<strong>${d.name}</strong><br>${d.value.toLocaleString()} customers (${pct}% of ${program} cohort)`;
+    })
+    .on('mousemove', e => { tooltip.style.left = (e.clientX+12)+'px'; tooltip.style.top = (e.clientY-44)+'px'; })
+    .on('mouseout', () => { tooltip.style.opacity='0'; });
+
+  nodeG.append('rect')
+    .attr('x', d => d.x0).attr('y', d => d.y0)
+    .attr('width', d => d.x1 - d.x0)
+    .attr('height', d => Math.max(2, d.y1 - d.y0))
+    .attr('fill', d => isEntry(d) ? entryColor : isChurn(d) ? '#D1D5DB' : '#94A3B8')
+    .attr('rx', 3);
+
+  // Left-side labels (entry column only)
+  nodeG.filter(d => Math.round(d.x0) === xCols[0])
+    .each(function(d) {
+      const g = d3.select(this);
+      const mid = (d.y0 + d.y1) / 2;
+      g.append('text').attr('x', d.x0 - 8).attr('y', mid - (d.y1-d.y0 > 18 ? 6 : 0))
+        .attr('dy', '0.35em').attr('text-anchor', 'end')
+        .attr('font-size', 12).attr('font-weight', 700).attr('fill', entryColor)
+        .attr('font-family', 'Inter, sans-serif').text(d.name);
+      if (d.y1 - d.y0 > 16)
+        g.append('text').attr('x', d.x0 - 8).attr('y', mid + 10)
+          .attr('dy', '0.35em').attr('text-anchor', 'end')
+          .attr('font-size', 10).attr('fill', '#B0B0B0')
+          .attr('font-family', 'Inter, sans-serif')
+          .text(d.value.toLocaleString() + ' customers');
+    });
+
+  // Right-side labels (all other columns)
+  nodeG.filter(d => Math.round(d.x0) !== xCols[0])
+    .each(function(d) {
+      const g = d3.select(this);
+      const mid = (d.y0 + d.y1) / 2;
+      const pct = Math.round((d.value / data.total) * 100);
+      const labelColor = isChurn(d) ? '#B0B0B0' : '#1A1A1A';
+      g.append('text').attr('x', d.x1 + 8).attr('y', mid - (d.y1-d.y0 > 18 ? 6 : 0))
+        .attr('dy', '0.35em').attr('text-anchor', 'start')
+        .attr('font-size', 11).attr('font-weight', 600).attr('fill', labelColor)
+        .attr('font-family', 'Inter, sans-serif')
+        .text(`${d.name} · ${pct}%`);
+      if (d.y1 - d.y0 > 16)
+        g.append('text').attr('x', d.x1 + 8).attr('y', mid + 10)
+          .attr('dy', '0.35em').attr('text-anchor', 'start')
+          .attr('font-size', 10).attr('fill', '#B0B0B0')
+          .attr('font-family', 'Inter, sans-serif')
+          .text(d.value.toLocaleString() + ' customers');
+    });
+}
+
+// Initial deep-dive render (fires after pathing tab is shown)
+const origSankey = sankeyRendered;
+document.querySelector('[data-tab="pathing"]').addEventListener('click', () => {
+  if (!origSankey) setTimeout(() => renderDeepSankey('Learn to Skate'), 50);
+}, { once: true });
+
+renderCustomers(CUSTOMERS);
+</script>
+</body>
+</html>

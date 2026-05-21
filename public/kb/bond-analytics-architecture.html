@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bond Sports Analytics — Stack & Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bond-navy:       #0F1923;
+      --bond-navy-mid:   #1A2940;
+      --bond-gold:       #C9A84C;
+      --bond-gold-light: #E8C97A;
+      --bo-primary:      #0D4774;
+      --bo-text:         #1A1A1A;
+      --bo-text-body:    #4A4A4A;
+      --bo-text-disabled:#B0B0B0;
+      --surface:         #FFFFFF;
+      --surface-sub:     #F8F9FA;
+      --border:          #E2E8F0;
+      --border-sub:      #F1F5F9;
+      --green:           #3B6D11;
+      --green-bg:        #EAF3DE;
+      --green-border:    #C0DD97;
+      --blue:            #185FA5;
+      --blue-bg:         #E6F1FB;
+      --blue-border:     #B5D4F4;
+      --amber:           #854F0B;
+      --amber-bg:        #FAEEDA;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--bo-text);
+      background: var(--surface-sub);
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--bond-navy);
+      padding: 40px 48px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .site-header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -80px;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--bond-gold);
+      margin-bottom: 10px;
+    }
+    .header-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 36px;
+      text-wrap: balance;
+    }
+    .header-sub {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.55);
+      font-size: 14px;
+      max-width: 580px;
+      line-height: 22px;
+      text-wrap: pretty;
+    }
+    .header-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 28px;
+      padding-bottom: 0;
+    }
+    .meta-stat {
+      text-align: center;
+    }
+    .meta-stat .num {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--bond-gold);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .meta-stat .lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 4px;
+    }
+    .meta-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.1);
+      align-self: stretch;
+    }
+
+    /* ── Tab Bar ── */
+    .tab-bar-wrap {
+      background: var(--bond-navy);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .tab-bar {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2px;
+      padding: 0 48px;
+      padding-top: 20px;
+    }
+    .tab-btn {
+      padding: 10px 20px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition-property: color, border-color;
+      transition-duration: 0.15s;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .tab-btn:hover { color: rgba(255,255,255,0.75); }
+    .tab-btn.active {
+      color: #fff;
+      border-bottom-color: var(--bond-gold);
+    }
+
+    /* ── Page body ── */
+    .page-body {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 40px 48px 80px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border-sub);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-icon.navy { background: var(--bond-navy); }
+    .card-icon.gold { background: rgba(201,168,76,0.15); }
+    .card-icon.blue { background: var(--blue-bg); }
+    .card-icon.green { background: var(--green-bg); }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--bo-text);
+      line-height: 22px;
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      margin-top: 2px;
+      line-height: 18px;
+    }
+    .card-body {
+      padding: 20px 24px;
+    }
+
+    /* ── Section headings ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--bo-text-body);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bo-primary);
+      line-height: 28px;
+      margin-bottom: 6px;
+      text-wrap: balance;
+    }
+    .section-body {
+      font-size: 14px;
+      color: var(--bo-text-body);
+      line-height: 22px;
+      text-wrap: pretty;
+    }
+
+    /* ── Grid layouts ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* ── Stat strip (overview) ── */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+    }
+    .stat-card .num {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--bo-primary);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-card .unit {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--bo-primary);
+    }
+    .stat-card .label {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+    .stat-card .desc {
+      font-size: 12px;
+      color: var(--bo-text-disabled);
+      margin-top: 3px;
+      line-height: 16px;
+    }
+
+    /* ── Q&A list (what we can answer) ── */
+    .qa-list { display: flex; flex-direction: column; gap: 2px; }
+    .qa-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      align-items: flex-start;
+    }
+    .qa-item:nth-child(odd) { background: var(--surface-sub); }
+    .qa-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--bond-gold);
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+    .qa-text {
+      font-size: 13px;
+      color: var(--bo-text-body);
+      line-height: 20px;
+    }
+
+    /* ── Team cards ── */
+    .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .person-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .person-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bond-navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--bond-gold);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .person-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--bo-text);
+    }
+    .person-title {
+      font-size: 12px;
+      color: var(--bo-primary);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .person-desc {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      margin-top: 6px;
+      line-height: 18px;
+    }
+
+    /* ── Pipeline diagram ── */
+    .pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin: 24px 0;
+    }
+    .pipe-node {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      text-align: center;
+      position: relative;
+    }
+    .pipe-node.source { border-color: var(--blue-border); background: var(--blue-bg); }
+    .pipe-node.staging { border-color: var(--amber-bg); }
+    .pipe-node.intermediate { }
+    .pipe-node.marts { border-color: var(--green-border); background: var(--green-bg); }
+    .pipe-node.consumer { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.07); }
+    .pipe-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      color: var(--bo-text-disabled);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .pipe-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--bo-text-disabled);
+      margin-bottom: 6px;
+    }
+    .pipe-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--bo-text);
+      margin-bottom: 4px;
+    }
+    .pipe-count {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bo-primary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .pipe-unit {
+      font-size: 11px;
+      color: var(--bo-text-body);
+      margin-top: 2px;
+    }
+
+    /* ── Source cards ── */
+    .source-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .source-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+    }
+    .source-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .source-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bo-text);
+      margin-bottom: 3px;
+    }
+    .source-desc {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      line-height: 18px;
+    }
+    .source-meta {
+      font-size: 11px;
+      color: var(--bo-text-disabled);
+      margin-top: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Model showcase ── */
+    .model-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .model-card:last-child { margin-bottom: 0; }
+    .model-header {
+      background: var(--bond-navy);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .model-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(201,168,76,0.2);
+      color: var(--bond-gold);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .model-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .model-tagline {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-left: auto;
+    }
+    .model-body { padding: 20px 22px; }
+    .model-desc {
+      font-size: 13px;
+      color: var(--bo-text-body);
+      line-height: 20px;
+      margin-bottom: 14px;
+    }
+    .model-answers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .answer-chip {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--surface-sub);
+      border: 1px solid var(--border);
+      color: var(--bo-text-body);
+      white-space: nowrap;
+    }
+    .model-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .model-mini {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .model-mini-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bo-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .mini-tag {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--bo-text-disabled);
+      background: var(--surface-sub);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+    .model-mini-desc {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      line-height: 18px;
+    }
+
+    /* ── Tool cards ── */
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .tool-card:last-child { margin-bottom: 0; }
+    .tool-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border-sub);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .tool-left { display: flex; gap: 14px; align-items: flex-start; }
+    .tool-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .tool-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--bo-text);
+    }
+    .tool-tagline {
+      font-size: 13px;
+      color: var(--bo-text-body);
+      margin-top: 2px;
+      line-height: 19px;
+    }
+    .stack-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .stack-chip {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 5px;
+      background: var(--surface-sub);
+      border: 1px solid var(--border);
+      color: var(--bo-text-body);
+      white-space: nowrap;
+    }
+    .tool-body { padding: 20px 24px; }
+    .tool-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .tool-feature {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .feature-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--bo-primary);
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+    .feature-text {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      line-height: 18px;
+    }
+
+    /* ── Decision cards ── */
+    .decision-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .decision-card:last-child { margin-bottom: 0; }
+    .decision-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border-sub);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .decision-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bo-primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .decision-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--bo-text);
+      line-height: 22px;
+    }
+    .decision-subtitle {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      margin-top: 2px;
+    }
+    .decision-body { padding: 18px 22px; }
+    .decision-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .decision-col-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .decision-col-label.why { color: var(--blue); }
+    .decision-col-label.what { color: var(--green); }
+    .decision-text {
+      font-size: 13px;
+      color: var(--bo-text-body);
+      line-height: 20px;
+    }
+
+    /* ── Callouts ── */
+    .callout {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      font-size: 13px;
+      line-height: 19px;
+      display: flex;
+      gap: 10px;
+    }
+    .callout-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .callout.info  { background: var(--blue-bg);  color: var(--blue);  border: 1px solid var(--blue-border); }
+    .callout.ok    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
+    /* ── Downstream consumer chips ── */
+    .consumer-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .consumer-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px;
+    }
+    .consumer-chip .icon { font-size: 16px; }
+    .consumer-chip .name { font-size: 12px; font-weight: 600; color: var(--bo-text); }
+    .consumer-chip .desc { font-size: 11px; color: var(--bo-text-body); }
+
+    /* ── Divider ── */
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    /* ── Spacing helpers ── */
+    .mt-4  { margin-top: 4px;  }
+    .mt-8  { margin-top: 8px;  }
+    .mt-14 { margin-top: 14px; }
+    .mt-24 { margin-top: 24px; }
+    .mt-32 { margin-top: 32px; }
+    .mb-14 { margin-bottom: 14px; }
+    .mb-24 { margin-bottom: 24px; }
+
+    /* ── Hard problems cards ── */
+    .hard-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .hard-card.featured {
+      border-color: rgba(201,168,76,0.4);
+      background: linear-gradient(135deg, #0F1923 0%, #1A2940 100%);
+    }
+    .hard-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--bond-gold);
+      padding: 16px 22px 0;
+    }
+    .hard-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 8px 22px 0;
+      color: #fff;
+    }
+    .hard-card:not(.featured) .hard-card-title {
+      color: var(--bo-text);
+      padding-top: 16px;
+    }
+    .hard-card-body {
+      padding: 14px 22px 20px;
+      font-size: 13px;
+      line-height: 20px;
+      color: rgba(255,255,255,0.65);
+    }
+    .hard-card:not(.featured) .hard-card-body {
+      color: var(--bo-text-body);
+    }
+    .hard-card-body p + p { margin-top: 8px; }
+    .hard-card-body strong { color: rgba(255,255,255,0.9); }
+    .hard-card:not(.featured) .hard-card-body strong { color: var(--bo-text); }
+    .hard-card-body em { color: var(--bond-gold-light); font-style: italic; }
+    .hard-card:not(.featured) .hard-card-body em { color: var(--bo-primary); }
+    .hard-feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .hard-feature {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .hard-card:not(.featured) .hard-feature {
+      background: var(--surface-sub);
+      border-color: var(--border);
+    }
+    .hard-feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--bond-gold);
+      margin-bottom: 5px;
+    }
+    .hard-card:not(.featured) .hard-feature-name {
+      color: var(--bo-primary);
+    }
+    .hard-feature-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      line-height: 18px;
+    }
+    .hard-card:not(.featured) .hard-feature-desc {
+      color: var(--bo-text-body);
+    }
+    .hard-callout {
+      margin-top: 14px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 7px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--bond-gold-light);
+      line-height: 18px;
+    }
+    .hard-card:not(.featured) .hard-callout {
+      background: var(--blue-bg);
+      border-color: var(--blue-border);
+      color: var(--blue);
+    }
+
+    /* ── Infrastructure row ── */
+    .infra-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 24px;
+    }
+    .infra-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .infra-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .infra-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--bo-text);
+    }
+    .infra-desc {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      margin-top: 4px;
+      line-height: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ HEADER ══════════════════════════════════════ -->
+<div class="site-header">
+  <div class="header-inner">
+    <div class="header-eyebrow">Bond Sports · Internal</div>
+    <h1 class="header-title">Bond Sports Analytics</h1>
+    <p class="header-sub">The data infrastructure that powers every financial report, customer insight, and operational metric across the Bond platform.</p>
+
+    <div class="header-meta" style="margin-top:28px; padding-bottom:0;">
+      <div class="meta-stat">
+        <div class="num">287</div>
+        <div class="lbl">dbt Models</div>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-stat">
+        <div class="num">6</div>
+        <div class="lbl">Data Sources</div>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-stat">
+        <div class="num">280<span style="font-size:16px;">+</span></div>
+        <div class="lbl">Customers Tracked</div>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-stat">
+        <div class="num">3</div>
+        <div class="lbl">Pipeline Layers</div>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-stat">
+        <div class="num">3</div>
+        <div class="lbl">Internal Tools</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ TAB BAR ══════════════════════════════════════ -->
+<div class="tab-bar-wrap">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab(this,'overview')">Overview</button>
+    <button class="tab-btn" onclick="switchTab(this,'dataflow')">Data Flow</button>
+    <button class="tab-btn" onclick="switchTab(this,'models')">What We've Built</button>
+    <button class="tab-btn" onclick="switchTab(this,'tools')">Internal Tools</button>
+    <button class="tab-btn" onclick="switchTab(this,'decisions')">Architecture</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ BODY ══════════════════════════════════════ -->
+<div class="page-body">
+
+  <!-- ────────────────────────────── TAB 1: OVERVIEW ────────────────────────────── -->
+  <div id="tab-overview" class="tab-panel active">
+
+    <div class="stat-strip">
+      <div class="stat-card">
+        <div class="num">287 <span class="unit" style="font-size:16px;">models</span></div>
+        <div class="label">dbt transformations</div>
+        <div class="desc">100 staging · 131 intermediate · 56 marts</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">6</div>
+        <div class="label">Upstream data sources</div>
+        <div class="desc">Bond platform, Stripe, Salesforce, and more</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">280<span class="unit">+</span></div>
+        <div class="label">Active organizations</div>
+        <div class="desc">Fully modeled — revenue, status, product mix</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">3</div>
+        <div class="label">Team members</div>
+        <div class="desc">David Jung · Brett Griffin · Logan Cashman</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px; align-items:start;">
+
+      <!-- Left column -->
+      <div>
+        <div class="card mb-14">
+          <div class="card-header">
+            <div class="card-icon navy">📊</div>
+            <div>
+              <div class="card-title">What Bond Analytics is</div>
+              <div class="card-subtitle">The single source of truth for all Bond financial and operational data</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="section-body">Bond Analytics is the data infrastructure layer that sits between the Bond platform and every downstream decision. Raw operational data flows in from the Bond platform, Stripe, Salesforce, and other systems — and comes out the other side as structured, tested, reliable models that power board reports, customer health dashboards, finance exports, and internal tools.</p>
+            <p class="section-body mt-8">Every number in a Sigma report, every row in a finance export, and every metric in a board deck traces back to a model in this stack.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon gold">👤</div>
+            <div>
+              <div class="card-title">The Team</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              <div class="person-card" style="border:none; padding:0; background:transparent;">
+                <div class="person-avatar">DJ</div>
+                <div>
+                  <div class="person-name">David Jung</div>
+                  <div class="person-title">Director of Data &amp; Analytics</div>
+                  <div class="person-desc">Owns the analytics strategy, reporting roadmap, and internal tooling. Primary interface between Analytics and the business — translating data into decisions.</div>
+                </div>
+              </div>
+              <div style="height:1px; background:var(--border-sub);"></div>
+              <div class="person-card" style="border:none; padding:0; background:transparent;">
+                <div class="person-avatar">BG</div>
+                <div>
+                  <div class="person-name">Brett Griffin</div>
+                  <div class="person-title">Data Engineer</div>
+                  <div class="person-desc">Builds and maintains the dbt models, Snowflake infrastructure, and data pipelines. The engineering backbone of the stack.</div>
+                </div>
+              </div>
+              <div style="height:1px; background:var(--border-sub);"></div>
+              <div class="person-card" style="border:none; padding:0; background:transparent;">
+                <div class="person-avatar">LC</div>
+                <div>
+                  <div class="person-name">Logan Cashman</div>
+                  <div class="person-title">Analyst</div>
+                  <div class="person-desc">Delivers analysis and reporting for customers and internal stakeholders. Translates data into actionable insights and supports Sigma adoption across the customer base.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon blue">💬</div>
+            <div>
+              <div class="card-title">What it can answer</div>
+              <div class="card-subtitle">Questions the stack is built to answer reliably, today</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="qa-list">
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">How much revenue has Bond recognized this month, by product line?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">What is total deferred revenue on the balance sheet right now?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">Which customers have outstanding AR balances, and how old are they?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">How many events did a customer run last quarter, and what did they generate in revenue?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">What is Bond's net revenue after refunds, discounts, and convenience fees?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">How many active organizations are on the platform, broken down by product type?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">What is the payment failure rate, and which customers are most affected?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">How does revenue recognition this period compare to the previous period?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">Which open Salesforce opportunities have corresponding platform activity?</div></div>
+              <div class="qa-item"><div class="qa-dot"></div><div class="qa-text">What data or reporting issues are open from the customer success inbox right now?</div></div>
+            </div>
+
+            <div class="callout info" style="margin-top:16px;">
+              <span class="callout-icon">ℹ</span>
+              <span>All of the above are live queries against structured dbt models in Snowflake — not manual pulls or spreadsheet calculations.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /overview -->
+
+
+  <!-- ────────────────────────────── TAB 2: DATA FLOW ────────────────────────────── -->
+  <div id="tab-dataflow" class="tab-panel">
+
+    <div class="section-label">Where the data comes from</div>
+    <div class="section-title">From source systems to structured insights</div>
+    <p class="section-body mt-4">Data flows from six upstream systems into Snowflake, passes through three transformation layers in dbt, and emerges as reliable models that power BI tools, finance exports, and customer-facing analytics.</p>
+
+    <!-- Pipeline diagram -->
+    <div class="pipeline mt-24">
+      <div class="pipe-node source">
+        <div class="pipe-label">Input</div>
+        <div class="pipe-name">Sources</div>
+        <div class="pipe-count" style="color:var(--blue);">6</div>
+        <div class="pipe-unit">upstream systems</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node staging">
+        <div class="pipe-label">Layer 1</div>
+        <div class="pipe-name">Staging</div>
+        <div class="pipe-count">100</div>
+        <div class="pipe-unit">models</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node intermediate">
+        <div class="pipe-label">Layer 2</div>
+        <div class="pipe-name">Intermediate</div>
+        <div class="pipe-count">131</div>
+        <div class="pipe-unit">models</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node marts">
+        <div class="pipe-label">Layer 3</div>
+        <div class="pipe-name">Marts</div>
+        <div class="pipe-count" style="color:var(--green);">56</div>
+        <div class="pipe-unit">models</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node consumer">
+        <div class="pipe-label">Output</div>
+        <div class="pipe-name">Consumers</div>
+        <div class="pipe-count" style="color:var(--amber); font-size:14px; margin-top:4px;">Sigma<br>Finance · Partners</div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">Data sources</div>
+
+    <div class="source-grid">
+
+      <div class="source-card" style="grid-column:1/-1; border-color:var(--blue-border); background:var(--blue-bg);">
+        <div class="source-badge" style="background:var(--bo-primary);">🏟</div>
+        <div>
+          <div class="source-name" style="color:var(--blue);">Bond Platform (RecCenter)</div>
+          <div class="source-desc">The primary operational system. Every event, reservation, membership, league, payment, and customer record originates here. The dominant source — ~87 source tables covering the full product surface.</div>
+          <div class="source-meta">87 source tables · RAW.RECCENTERDB_PUBLIC · Entities: events, slots, registrations, memberships, leagues, invoices, payments, users, orgs</div>
+        </div>
+      </div>
+
+      <div class="source-card">
+        <div class="source-badge" style="background:#F0FFF4; font-size:20px;">💳</div>
+        <div>
+          <div class="source-name">Stripe</div>
+          <div class="source-desc">Payment processing and payout data. Itemized activity report bridged to Bond transactions for reconciliation and SNIB (Stripe Not In Bond) tracking.</div>
+          <div class="source-meta">1 source table · STRIPE_SHARE · Snowflake data share</div>
+        </div>
+      </div>
+
+      <div class="source-card">
+        <div class="source-badge" style="background:#F0F7FF; font-size:20px;">☁️</div>
+        <div>
+          <div class="source-name">Salesforce</div>
+          <div class="source-desc">CRM pipeline — accounts, contacts, opportunities, and demo activity. Live Snowflake share; queryable in real time alongside platform data.</div>
+          <div class="source-meta">Live share · SALESFORCE database · CRM data</div>
+        </div>
+      </div>
+
+      <div class="source-card">
+        <div class="source-badge" style="background:#FFF8EC; font-size:20px;">💸</div>
+        <div>
+          <div class="source-name">Payout Service</div>
+          <div class="source-desc">Internal settlement and payout tracking. Records balance transactions and payout events from Bond's internal payout service, separate from Stripe's view.</div>
+          <div class="source-meta">2 source tables · RAW.PAYOUT_SERVICE_PUBLIC</div>
+        </div>
+      </div>
+
+      <div class="source-card">
+        <div class="source-badge" style="background:#F5F0FF; font-size:20px;">🌐</div>
+        <div>
+          <div class="source-name">Open Exchange Rates</div>
+          <div class="source-desc">Daily FX rates for multi-currency support. Allows revenue to be reported in a common currency regardless of the customer's billing currency.</div>
+          <div class="source-meta">2 source tables · RAW.open_exchange_rates</div>
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">Pipeline layers</div>
+
+    <div class="grid-3 mt-14">
+
+      <div class="card">
+        <div class="card-body">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--bo-text-disabled); margin-bottom:6px;">Layer 1</div>
+          <div style="font-size:16px; font-weight:700; color:var(--bo-text); margin-bottom:6px;">Staging</div>
+          <div style="font-size:26px; font-weight:700; color:var(--bo-primary); font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px;">100 <span style="font-size:14px; font-weight:500;">models</span></div>
+          <p class="section-body mt-8">One-to-one mirrors of source tables. Renames columns, casts types, applies minimal filtering. No business logic. Each source system has its own staging subfolder.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--bo-text-disabled); margin-bottom:6px;">Layer 2</div>
+          <div style="font-size:16px; font-weight:700; color:var(--bo-text); margin-bottom:6px;">Intermediate</div>
+          <div style="font-size:26px; font-weight:700; color:var(--bo-primary); font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px;">131 <span style="font-size:14px; font-weight:500;">models</span></div>
+          <p class="section-body mt-8">Business logic lives here. Revenue recognition engines, FIFO payment allocators, accrual ledger construction, event and slot metrics. The most complex layer — organized by domain (actions, invoices, memberships, scheduling, etc.).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--bo-text-disabled); margin-bottom:6px;">Layer 3</div>
+          <div style="font-size:16px; font-weight:700; color:var(--bo-text); margin-bottom:6px;">Marts</div>
+          <div style="font-size:26px; font-weight:700; color:var(--bo-primary); font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px;">56 <span style="font-size:14px; font-weight:500;">models</span></div>
+          <p class="section-body mt-8">Final, consumer-ready outputs. Materialized as physical tables in Snowflake for query performance. Includes a shared domain (12 secure views, auto-granted to Bond's Snowflake data share) for external partner access.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="infra-row">
+
+      <div class="infra-card">
+        <div class="infra-icon">❄️</div>
+        <div>
+          <div class="infra-name">Snowflake</div>
+          <div class="infra-desc">Cloud data warehouse. All source data lands in RAW; all transformed models live in ANALYTICS. Production account: <code style="font-size:11px; background:var(--surface-sub); padding:1px 5px; border-radius:4px; border:1px solid var(--border);">VYQVYJM-BOND_WAREHOUSE</code>. Databases: RAW, ANALYTICS, STRIPE_SHARE, SALESFORCE, DEV.</div>
+        </div>
+      </div>
+
+      <div class="infra-card">
+        <div class="infra-icon">🔧</div>
+        <div>
+          <div class="infra-name">dbt (data build tool)</div>
+          <div class="infra-desc">Runs all SQL transformations. Every model is version-controlled, tested, and documented. Scheduled via dbt Cloud. SQL linting enforced with sqlfluff. All transformations are reproducible and auditable.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-label mt-24 mb-14">Downstream consumers</div>
+    <div class="consumer-row">
+      <div class="consumer-chip">
+        <span class="icon">📈</span>
+        <div>
+          <div class="name">Sigma</div>
+          <div class="desc">Primary BI platform</div>
+        </div>
+      </div>
+      <div class="consumer-chip">
+        <span class="icon">📁</span>
+        <div>
+          <div class="name">Finance Exports</div>
+          <div class="desc">AR, income, journal entries</div>
+        </div>
+      </div>
+      <div class="consumer-chip">
+        <span class="icon">🤝</span>
+        <div>
+          <div class="name">Data Share</div>
+          <div class="desc">12 secure partner views</div>
+        </div>
+      </div>
+      <div class="consumer-chip">
+        <span class="icon">🤖</span>
+        <div>
+          <div class="name">Claude / MCP</div>
+          <div class="desc">Natural language queries</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dataflow -->
+
+
+  <!-- ────────────────────────────── TAB 3: WHAT WE'VE BUILT ────────────────────────────── -->
+  <div id="tab-models" class="tab-panel">
+
+    <div class="section-label">Key mart models</div>
+    <div class="section-title">The outputs that matter</div>
+    <p class="section-body mt-4 mb-24">These are the flagship models at the top of the stack — the ones that power board reports, finance exports, and customer health views. Each one is a production table in Snowflake, rebuilt on a schedule, with dbt tests to catch data integrity issues before they surface downstream.</p>
+
+    <!-- Actions Ledger — featured -->
+    <div class="model-card">
+      <div class="model-header">
+        <div class="model-tag">Flagship</div>
+        <div class="model-title">Actions Ledger</div>
+        <div class="model-tagline">The financial backbone of Bond Analytics</div>
+      </div>
+      <div class="model-body">
+        <p class="model-desc">A full double-entry accrual ledger that tracks every dollar of revenue across the entire Bond platform — from the moment a customer is invoiced, through payment, through recognition. Every financial statement traces back here.</p>
+        <p class="model-desc">The Actions Ledger unifies 7 product streams (events, slots, registrations, leagues, memberships, goods, convenience fees) into a single coherent view with canonical accounting balances: Accounts Receivable, Deferred Revenue, and Recognized Revenue. A built-in sanity check enforces that Assets = Liabilities + Equity at every row — if it doesn't balance, the model fails before it reaches production.</p>
+        <div class="model-answers">
+          <span class="answer-chip">Revenue recognized this period</span>
+          <span class="answer-chip">Deferred revenue balance</span>
+          <span class="answer-chip">AR by customer</span>
+          <span class="answer-chip">Revenue by product line</span>
+          <span class="answer-chip">GAAP income statement inputs</span>
+          <span class="answer-chip">Payment vs. recognition timing</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" style="margin-top:28px;" />
+
+    <div class="section-label">Sigma workbooks — what customers actually use</div>
+    <p class="section-body mb-24">Eight production workbooks delivered to every Bond customer in Sigma. Each is built on dbt models in Snowflake and scoped to the customer's own data via row-level security. These are the reports customers open daily, reference in QBRs, and ask questions about most.</p>
+
+    <!-- Financials - featured -->
+    <div class="model-card">
+      <div class="model-header">
+        <div class="model-tag">Most Used</div>
+        <div class="model-title">Financials</div>
+        <div class="model-tagline">The report that closes the sale</div>
+      </div>
+      <div class="model-body">
+        <p class="model-desc">Bond's financial reporting is the primary competitive differentiator — and the Financials workbook is where customers live. It's the only report in the market that gives facilities true accrual accounting alongside cash, without manual reconciliation. Customers switching from Dash, Finley, or Click point to this workbook specifically as the reason they moved.</p>
+        <div class="model-answers">
+          <span class="answer-chip">Invoice status &amp; paid vs. invoiced</span>
+          <span class="answer-chip">AR aging (30 / 60 / 90+ days)</span>
+          <span class="answer-chip">Deferred &amp; recognized revenue</span>
+          <span class="answer-chip">GAAP vs. cash toggle</span>
+          <span class="answer-chip">Stripe payout reconciliation</span>
+          <span class="answer-chip">Year-over-year trending</span>
+          <span class="answer-chip">GL code mapping</span>
+          <span class="answer-chip">Promo &amp; discount impact</span>
+          <span class="answer-chip">Payment failure rate</span>
+          <span class="answer-chip">Failed &amp; future payment plans</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="model-grid mt-14">
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Programming
+          <span class="mini-tag">Registrations</span>
+        </div>
+        <div class="model-mini-desc">Session and event registrations, bookings, revenue at risk (balance and % at risk), punch pass tracking (purchased vs. used), GL code performance, and YTD registration trends by program and org.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Memberships
+          <span class="mini-tag">Recurring Revenue</span>
+        </div>
+        <div class="model-mini-desc">Active member counts, attendance, and membership revenue. Correctly isolates active members by excluding canceled renewals — fixing the billing accuracy gap that plagued platforms like Click.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Rentals
+          <span class="mini-tag">Ice &amp; Facility Ops</span>
+        </div>
+        <div class="model-mini-desc">Unbilled reservation revenue, rental event schedule, invoice and payment status, approval workflow, and slot-type breakdown. Critical for ice rinks and arena operators managing complex rental calendars.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Leagues
+          <span class="mini-tag">League Management</span>
+        </div>
+        <div class="model-mini-desc">Season registrations, waiver completion rates by participant, team and captain details, booked amounts, invoice IDs, and revenue by league and season.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Customers
+          <span class="mini-tag">CRM &amp; Marketing</span>
+        </div>
+        <div class="model-mini-desc">Customer demographics, geographic distribution, top customers by value, family account structures, new customer trends, and waiver compliance tracking. Used for targeted marketing lists (age, gender) and customer health views.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Scheduling
+          <span class="mini-tag">Capacity</span>
+        </div>
+        <div class="model-mini-desc">Slot utilization by type, booked vs. available capacity, and date-range trending. Gives facilities a clear view of how their space is being used over time.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          Operational Homepage
+          <span class="mini-tag">Facility Cockpit</span>
+        </div>
+        <div class="model-mini-desc">The facility manager's starting point. Payments total, transactions processed, new customers, session registrations — all in one view with direct links to every detailed workbook. Replaces the need to open multiple tabs.</div>
+      </div>
+
+      <div class="model-mini">
+        <div class="model-mini-name">
+          CS Health Dashboard
+          <span class="mini-tag">Internal · Beta</span>
+        </div>
+        <div class="model-mini-desc">Customer success team's view across all Bond accounts — health signals, activity indicators, and flags for at-risk orgs. Currently in beta, actively developed.</div>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">Shared data layer</div>
+
+    <div class="callout info">
+      <span class="callout-icon">🔐</span>
+      <span><strong>12 secure Snowflake views</strong> are automatically granted to Bond's Snowflake data share on every production dbt run. Partners and internal systems can query live, access-controlled data without copying it. Zero-copy — the data never leaves Bond's warehouse.</span>
+    </div>
+
+    <div class="model-grid mt-14">
+      <div class="model-mini"><div class="model-mini-name">Customers Shared</div><div class="model-mini-desc">Customer dimension for partner analytics</div></div>
+      <div class="model-mini"><div class="model-mini-name">Event Registrations Shared</div><div class="model-mini-desc">Event registration facts</div></div>
+      <div class="model-mini"><div class="model-mini-name">League Season Registrations</div><div class="model-mini-desc">League season registration facts</div></div>
+      <div class="model-mini"><div class="model-mini-name">Line Items Shared</div><div class="model-mini-desc">Invoice line item facts</div></div>
+      <div class="model-mini"><div class="model-mini-name">Membership Attendance</div><div class="model-mini-desc">Attendance tracking for members</div></div>
+      <div class="model-mini"><div class="model-mini-name">Payment Line Items Shared</div><div class="model-mini-desc">Payment line item facts</div></div>
+    </div>
+
+  </div><!-- /models -->
+
+
+  <!-- ────────────────────────────── TAB 4: INTERNAL TOOLS ────────────────────────────── -->
+  <div id="tab-tools" class="tab-panel">
+
+    <div class="section-label">Internal tooling</div>
+    <div class="section-title">Built on top of the data stack</div>
+    <p class="section-body mt-4 mb-24">Three internal tools sit on top of the Snowflake/dbt foundation — each built to solve a specific operational problem that no off-the-shelf product handled well enough.</p>
+
+    <!-- sigma-admin -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-left">
+          <div class="tool-icon" style="background:var(--bond-navy);">⚙️</div>
+          <div>
+            <div class="tool-name">sigma-admin</div>
+            <div class="tool-tagline">Admin control plane for Sigma — Bond's primary BI and analytics platform. Single entry point for managing every organization's data access and reporting permissions.</div>
+          </div>
+        </div>
+        <div class="stack-chips">
+          <span class="stack-chip">Next.js 16</span>
+          <span class="stack-chip">React 19</span>
+          <span class="stack-chip">TypeScript</span>
+          <span class="stack-chip">Tailwind 4</span>
+          <span class="stack-chip">Vercel</span>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div class="tool-features">
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Directory</strong> — Browse and manage all 280+ Sigma member accounts and organizations in a sortable, filterable table</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>User Provisioning</strong> — Create and configure new Sigma accounts with the correct role, org assignment, and attribute set</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>RLS Management</strong> — Bulk-update row-level security attributes that control which data each org can see in Sigma reports</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Org Hierarchy</strong> — Manage parent/child organization relationships and team structures for multi-venue customers</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Email Broadcast</strong> — Send targeted emails to specific Sigma member segments directly from the admin panel</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Account Types</strong> — Define and assign account type configurations that govern feature access and report visibility</div></div>
+        </div>
+        <div class="callout ok" style="margin-top:16px;">
+          <span class="callout-icon">✓</span>
+          <span>Without sigma-admin, every org permission change would require a manual API call to Sigma. The tool turns a developer task into a 30-second admin action.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- reporting-triage -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-left">
+          <div class="tool-icon" style="background:var(--blue-bg); font-size:18px;">📬</div>
+          <div>
+            <div class="tool-name">reporting-triage</div>
+            <div class="tool-tagline">AI-powered email triage for the data team. Turns the customer success inbox into a structured, prioritized queue with SLA tracking and Jira integration.</div>
+          </div>
+        </div>
+        <div class="stack-chips">
+          <span class="stack-chip">React 18</span>
+          <span class="stack-chip">Vite</span>
+          <span class="stack-chip">Netlify</span>
+          <span class="stack-chip">Claude AI</span>
+          <span class="stack-chip">Supabase</span>
+          <span class="stack-chip">Gmail API</span>
+          <span class="stack-chip">Jira</span>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div class="tool-features">
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Gmail sync</strong> — Reads <code style="font-size:11px;">customersuccess@bondsports.co</code>, detects data/reporting threads, syncs in real time</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Claude AI classification</strong> — Automatically categorizes each issue by board (REP = reporting, SB = platform bug), root cause, and priority temperature (1–5)</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>SLA tracking</strong> — 24-business-hour SLA per issue, with a visual age bar showing queue health and SLA breach risk</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Jira integration</strong> — Search existing tickets or create new ones directly from an issue card, without leaving the dashboard</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Auto-resolution</strong> — Detects resolution keywords in email replies and closes issues automatically</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Persistent queue</strong> — Backed by Supabase Postgres; survives page refreshes, team handoffs, and browser closings</div></div>
+        </div>
+        <div class="callout ok" style="margin-top:16px;">
+          <span class="callout-icon">✓</span>
+          <span>Turns an unstructured inbox into a prioritized, SLA-tracked queue. The data team sees every reporting issue — classified and aged — without manually reading every email.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- bond-analytics-hub -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-left">
+          <div class="tool-icon" style="background:var(--green-bg); font-size:18px;">📚</div>
+          <div>
+            <div class="tool-name">bond-analytics-hub</div>
+            <div class="tool-tagline">Internal knowledge base for the analytics org — playbooks, PRDs, reports, and documentation in one auth-gated portal.</div>
+          </div>
+        </div>
+        <div class="stack-chips">
+          <span class="stack-chip">React 18</span>
+          <span class="stack-chip">Vite</span>
+          <span class="stack-chip">React Router</span>
+          <span class="stack-chip">Tailwind 4</span>
+          <span class="stack-chip">Netlify</span>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div class="tool-features">
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Playbooks</strong> — Operational guides for recurring analytics workflows and processes</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>PRDs</strong> — Product requirement documents for analytics features and data products</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Reports</strong> — Markdown-based reference reports for team and stakeholder consumption</div></div>
+          <div class="tool-feature"><div class="feature-dot"></div><div class="feature-text"><strong>Auth-gated</strong> — Role-based access control; admin features restricted to the data team</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tools -->
+
+
+  <!-- ────────────────────────────── TAB 5: ARCHITECTURE ────────────────────────────── -->
+  <div id="tab-decisions" class="tab-panel">
+
+    <div class="section-label">What makes this uniquely hard</div>
+    <div class="section-title">Problems most analytics teams never face</div>
+    <p class="section-body mt-4">Most analytics stacks read clean transactional data and aggregate it. Bond Analytics can't do that — the underlying financial reality is too complex. These are the problems that don't exist in a standard analytics role and that make the work here genuinely uncommon.</p>
+
+    <!-- FIFO — featured -->
+    <div class="hard-card featured mt-24">
+      <div class="hard-card-label">Hardest problem</div>
+      <div class="hard-card-title">FIFO Payment Allocation</div>
+      <div class="hard-card-body">
+        <p>When a customer pays a lump sum that covers future events, that money can't just sit as a payment — it has to be allocated to each event in the exact order it occurs. Sounds simple. It isn't.</p>
+        <p>Bond runs <strong>three parallel FIFO allocators</strong>, each with different logic:</p>
+        <div class="hard-feature-grid">
+          <div class="hard-feature">
+            <div class="hard-feature-name">Reservation FIFO</div>
+            <div class="hard-feature-desc">Matches payments to ice time and slot reservations in canonical order. Addon payments (e.g. equipment) are spread proportionally across slots by price weight. A documented platform bug allows slots to silently change their reservation ID mid-lifecycle — the allocator detects this using a window function and recovers the original ID rather than misallocating revenue.</div>
+          </div>
+          <div class="hard-feature">
+            <div class="hard-feature-name">Registration FIFO</div>
+            <div class="hard-feature-desc">Matches payments to event and class registrations. Uses a 5-level canonical ordering — events before payments, discounts before discount reversals — and forward-fills price-per-event onto payment rows using LAST_VALUE IGNORE NULLS. Orphaned payments (where no matching event exists) are captured with a synthetic action key suffix rather than dropped silently.</div>
+          </div>
+          <div class="hard-feature">
+            <div class="hard-feature-name">Punch Pass FIFO</div>
+            <div class="hard-feature-desc">Punch passes are prepaid bundles for N events. Revenue can only be recognized per event attended, not per pass sold. If a customer attends fewer events than their pass allows, a synthetic remainder row (event_id = -1) absorbs the unrecognized balance. This prevents over-recognition while still keeping the books balanced.</div>
+          </div>
+        </div>
+        <div class="hard-callout">Every allocator includes an explicit orphaned-payment handler — no dollar is silently dropped. If a payment can't be matched, it's surfaced as an identifiable row rather than disappearing into the void.</div>
+      </div>
+    </div>
+
+    <div class="grid-2 mt-14 mb-24" style="gap:14px; align-items:start;">
+
+      <div class="hard-card">
+        <div class="hard-card-title">Revenue Recognition Across 7 Product Streams</div>
+        <div class="hard-card-body">
+          <p>Most platforms recognize revenue when payment clears. Bond recognizes revenue when it's <em>earned</em> — which is different for every product type on the platform.</p>
+          <p style="margin-top:10px;">The accrual engine unifies <strong>7 product streams</strong> (events, slots, leagues, memberships, registrations, goods, convenience fees) into a single ledger, applying one of three recognition methods per line item:</p>
+          <div class="hard-feature-grid" style="grid-template-columns:1fr; gap:8px; margin-top:10px;">
+            <div class="hard-feature">
+              <div class="hard-feature-name">Evenly from start</div>
+              <div class="hard-feature-desc">Revenue spread daily across the service period. Requires generating up to 2,000 synthetic date rows per line item using Snowflake's LATERAL GENERATOR — there's no other way to do it in pure SQL.</div>
+            </div>
+            <div class="hard-feature">
+              <div class="hard-feature-name">On event occurrence</div>
+              <div class="hard-feature-desc">Recognition triggered when a specific event happens (e.g. a class runs, a slot is consumed). This is the core of the FIFO allocator problem — the event has to actually occur before the money is real.</div>
+            </div>
+            <div class="hard-feature">
+              <div class="hard-feature-name">Milestone-based</div>
+              <div class="hard-feature-desc">Revenue recognized at defined checkpoints regardless of daily spread. Used for goods and certain league fee structures.</div>
+            </div>
+          </div>
+          <div class="hard-callout" style="margin-top:12px;">A built-in sanity check enforces Assets = Liabilities + Equity at every row. If the ledger goes out of balance, the dbt run fails before anything reaches production.</div>
+        </div>
+      </div>
+
+      <div class="hard-card">
+        <div class="hard-card-title">Building on a Moving Platform</div>
+        <div class="hard-card-body">
+          <p>The Bond platform is a live, actively developed product. The data layer underneath it is not stable — and Analytics has to absorb that instability without exposing it downstream.</p>
+          <p style="margin-top:10px;">Real examples from production code:</p>
+          <div class="hard-feature-grid" style="grid-template-columns:1fr; gap:8px; margin-top:10px;">
+            <div class="hard-feature">
+              <div class="hard-feature-name">Slot reservation_id drift</div>
+              <div class="hard-feature-desc">Slots can silently change their reservation_id in the platform database mid-lifecycle. A FIRST_VALUE window function recovers the original ID so the allocator doesn't misroute payments.</div>
+            </div>
+            <div class="hard-feature">
+              <div class="hard-feature-name">Migration data anomalies</div>
+              <div class="hard-feature-desc">Historical data migrated from legacy systems includes line items where the first recorded action is a payment — which is impossible in the normal flow. These rows are excluded via a LEFT JOIN anti-pattern; a NOT IN clause caused query timeouts at scale.</div>
+            </div>
+            <div class="hard-feature">
+              <div class="hard-feature-name">Synthetic IDs for convenience fees</div>
+              <div class="hard-feature-desc">Convenience fees don't have real line_item_ids in the platform — they're generated synthetically in dbt. Every downstream join has to use a LEFT JOIN to avoid dropping them.</div>
+            </div>
+          </div>
+          <div class="hard-callout" style="margin-top:12px;">Each of these represents a permanent dbt workaround for a platform behavior that can't be changed without a full data migration. The stack absorbs the complexity so nothing surfaces to customers or finance.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">Key design decisions</div>
+    <div class="section-title">Why it's built this way</div>
+    <p class="section-body mt-4 mb-24">Every meaningful architectural choice has a reason. These are the five decisions that define how Bond Analytics works — explained in terms of what they protect against, not just what they are.</p>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <div class="decision-num">1</div>
+        <div>
+          <div class="decision-title">Double-entry accrual ledger — not cash-based accounting</div>
+          <div class="decision-subtitle">The actions model: Revenue recognized when earned, not when paid</div>
+        </div>
+      </div>
+      <div class="decision-body">
+        <div class="decision-row">
+          <div>
+            <div class="decision-col-label why">Why it matters</div>
+            <p class="decision-text">Cash accounting is simple but wrong for a platform business. A customer can pay for 10 events in January and run them through June — cash accounting books the revenue in January; accrual accounting spreads it correctly. Bond's board reports and financial statements need GAAP-compliant recognition. A cash-based model would materially misstate revenue in any period where pre-payment and delivery don't align.</p>
+          </div>
+          <div>
+            <div class="decision-col-label what">How it's implemented</div>
+            <p class="decision-text">The Actions Ledger uses a full double-entry model: every financial event creates a debit and a credit across AR, Deferred Revenue, and Recognized Revenue accounts. Running balances are computed via window functions. A built-in constraint — Assets = Liabilities + Equity — is enforced at every row. If the model goes out of balance, it fails the dbt run before reaching production.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <div class="decision-num">2</div>
+        <div>
+          <div class="decision-title">FIFO payment allocators for every revenue stream</div>
+          <div class="decision-subtitle">Matching payments to revenue events in strict chronological order</div>
+        </div>
+      </div>
+      <div class="decision-body">
+        <div class="decision-row">
+          <div>
+            <div class="decision-col-label why">Why it matters</div>
+            <p class="decision-text">When a customer makes a lump-sum payment that covers multiple future events, that payment must be allocated correctly to each event as it occurs — otherwise revenue is either over-recognized (booked too early) or under-recognized (missed). Without a FIFO allocator, partial payments, refunds, and multi-event invoices produce incorrect ledger balances that are nearly impossible to audit.</p>
+          </div>
+          <div>
+            <div class="decision-col-label what">How it's implemented</div>
+            <p class="decision-text">Two parallel FIFO processors — one for reservations (slots/ice time) and one for registrations (events/classes) — each with their own canonical ordering logic and running payment balance computation. A third path handles punch passes, which have a unique "remainder" accounting treatment. Each processor has explicit orphaned payment handling so no dollar is silently dropped.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <div class="decision-num">3</div>
+        <div>
+          <div class="decision-title">dbt over raw SQL — version control, testing, and documentation as requirements</div>
+          <div class="decision-subtitle">Every transformation is a reproducible, tested, documented artifact</div>
+        </div>
+      </div>
+      <div class="decision-body">
+        <div class="decision-row">
+          <div>
+            <div class="decision-col-label why">Why it matters</div>
+            <p class="decision-text">Raw SQL in a warehouse is a black box. It can't be version-controlled cleanly, it doesn't self-document, and there's no standard way to test it. When a number in a board report is wrong, finding the root cause in raw SQL means manually tracing through warehouse query history. With dbt, every model has a git history, a lineage graph, and a test suite — bugs are findable in minutes, not hours.</p>
+          </div>
+          <div>
+            <div class="decision-col-label what">How it's implemented</div>
+            <p class="decision-text">All 287 models are dbt SQL files with .yml documentation and dbt tests (not_null, unique, relationship checks). SQL style is enforced via sqlfluff. Models run on dbt Cloud on a production schedule. The lineage graph is auto-generated — anyone can see exactly which models feed which outputs without asking the team.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <div class="decision-num">4</div>
+        <div>
+          <div class="decision-title">Snowflake as the single source of truth</div>
+          <div class="decision-subtitle">All data in, all data out — no system talks directly to another</div>
+        </div>
+      </div>
+      <div class="decision-body">
+        <div class="decision-row">
+          <div>
+            <div class="decision-col-label why">Why it matters</div>
+            <p class="decision-text">When data flows directly between systems (e.g., Stripe → Salesforce, or Bond platform → Sigma), every integration is a custom pipe that breaks independently and has no shared audit trail. Two systems can disagree on a number and there's no referee. Routing everything through Snowflake means there is always one authoritative version of every number — and one place to look when they don't match.</p>
+          </div>
+          <div>
+            <div class="decision-col-label what">How it's implemented</div>
+            <p class="decision-text">All source systems land in RAW (Bond platform, Stripe, Payout Service, Open Exchange Rates). All transformed outputs live in ANALYTICS. All downstream consumers (Sigma, Qlik, finance exports, data share) pull from ANALYTICS. Live external data (Salesforce, Stripe Share) is accessed via Snowflake's data sharing, keeping the warehouse as the query layer without requiring a copy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <div class="decision-num">5</div>
+        <div>
+          <div class="decision-title">Read-only access pattern for analysts and AI tools</div>
+          <div class="decision-subtitle">Two-layer lockdown: Snowflake RBAC + MCP config blocking all writes</div>
+        </div>
+      </div>
+      <div class="decision-body">
+        <div class="decision-row">
+          <div>
+            <div class="decision-col-label why">Why it matters</div>
+            <p class="decision-text">The production data warehouse is not a development environment. Giving analysts or AI tools write access creates real risk of accidental data modification — especially as Claude and other AI agents become capable of running SQL autonomously. A SELECT-only role makes it safe to give broad access without worrying about what someone (or something) might accidentally change.</p>
+          </div>
+          <div>
+            <div class="decision-col-label what">How it's implemented</div>
+            <p class="decision-text">Two enforcement layers: (1) A BOND_READONLY Snowflake role with SELECT-only grants on ANALYTICS — no INSERT, UPDATE, DELETE, or DDL. (2) An MCP config file that explicitly blocks all write SQL statement types at the tool level, regardless of what the Snowflake role technically permits. Both layers must be bypassed to accidentally modify data — that's intentional.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /decisions -->
+
+</div><!-- /page-body -->
+
+<script>
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

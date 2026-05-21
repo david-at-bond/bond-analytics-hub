@@ -7,6 +7,8 @@ import DraftBadge from '../components/content/DraftBadge.jsx'
 import { changelog } from '../content/changelog.js'
 import { reports } from '../content/reports/index.js'
 import { tools } from '../content/tools.js'
+import { triageSnapshot } from '../content/analytics/triage.js'
+import { throughputSnapshot } from '../content/analytics/throughput.js'
 import { ExternalLinkIcon } from '../components/layout/Icons.jsx'
 
 const QUICK_TOOLS = ['triage', 'sigma-admin', 'sigma', 'roadmap']
@@ -15,6 +17,13 @@ export default function Overview({ auth }) {
   const { user, viewAsPublic } = auth
   const visibleChangelog = changelog.filter(e => canSee(e, user, viewAsPublic)).slice(0, 5)
   const quickTools = tools.filter(t => QUICK_TOOLS.includes(t.id))
+
+  const stats = [
+    { label: 'REP fixes shipped YTD', value: throughputSnapshot.ytdResolved, sub: 'Jira REP project',                 link: '/analytics/throughput' },
+    { label: 'Issues triaged',        value: triageSnapshot.totals.triaged,  sub: `${Math.round(triageSnapshot.totals.resolutionRate * 100)}% resolved`, link: '/analytics/triage' },
+    { label: 'Customer orgs served',  value: triageSnapshot.totals.uniqueOrgs, sub: 'distinct organizations',          link: '/analytics/triage' },
+    { label: 'Reports in build',      value: reports.filter(r => r.status === 'In build').length, sub: `${reports.filter(r => r.status === 'Live').length} live`, link: '/reports' },
+  ]
 
   return (
     <div>
@@ -27,23 +36,27 @@ export default function Overview({ auth }) {
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 12 }}>
-          {[
-            { label: 'Active Projects', value: 3 },
-            { label: 'Live Reports',    value: reports.filter(r => r.status === 'Live').length },
-            { label: 'PRDs in Build',   value: reports.filter(r => r.status === 'In build').length },
-            { label: 'Team Members',    value: 2 },
-          ].map(stat => (
-            <div key={stat.label} style={{
-              flex: 1, background: BOND.surface, border: `1px solid ${BOND.border}`,
-              borderRadius: 10, padding: '16px 20px',
-            }}>
-              <div style={{ fontSize: 26, fontWeight: 700, color: BOND.primary, fontVariantNumeric: 'tabular-nums' }}>
-                {stat.value}
+          {stats.map(stat => (
+            <Link key={stat.label} to={stat.link} style={{ textDecoration: 'none', flex: 1 }}>
+              <div
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#CBD5E0'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = BOND.border; e.currentTarget.style.boxShadow = 'none' }}
+                style={{
+                  background: BOND.surface, border: `1px solid ${BOND.border}`,
+                  borderRadius: 10, padding: '16px 20px',
+                  transition: 'box-shadow 0.15s, border-color 0.15s',
+                  cursor: 'pointer', height: '100%',
+                }}
+              >
+                <div style={{ fontSize: 28, fontWeight: 700, color: BOND.primary, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: 12, color: BOND.text, marginTop: 6, fontWeight: 600 }}>
+                  {stat.label}
+                </div>
+                {stat.sub && <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 2 }}>{stat.sub}</div>}
               </div>
-              <div style={{ fontSize: 12, color: BOND.textMuted, marginTop: 4, fontWeight: 500 }}>
-                {stat.label}
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
 

@@ -1,5 +1,50 @@
 export const reports = [
   {
+    slug: 'ltv',
+    title: 'LTV Report',
+    summary: 'Customer lifetime value analytics — cohort retention, revenue trajectory, churn proxies, and operator-level LTV breakdowns.',
+    owner: 'david.jung@bondsports.co',
+    status: 'In build',
+    published: true,
+    sigmaUrl: null,
+    prdSlug: 'ltv',
+    tags: ['revenue', 'retention', 'operators'],
+    updatedAt: '2026-05-19',
+    body: `## What this report answers
+
+- Which customer cohorts have the highest lifetime value?
+- How does revenue retention curve look across operator types?
+- Where are the leading indicators of churn risk?
+
+## Status
+
+PRD and mock complete. In build with Brett on the dbt LTV model.`,
+  },
+  {
+    slug: 'credits-and-debits',
+    title: 'Credits & Debits Report',
+    summary: 'Finance-facing GL journal entry export to push recognized revenue, credits, and debits directly into Bond\'s ERP.',
+    owner: 'david.jung@bondsports.co',
+    status: 'In build',
+    published: true,
+    sigmaUrl: null,
+    prdSlug: 'credits-and-debits',
+    tags: ['finance', 'erp', 'revenue-recognition'],
+    updatedAt: '2026-04-28',
+    body: `## What this report answers
+
+- What are the recognized credits and debits for the period?
+- How do we get clean GL entries into the ERP without a manual quarterly reconciliation?
+
+## Data source
+
+Powered by 4.Actions (Core - Financial) from Brett's dbt warehouse — the authoritative source of recognized revenue. Line Items and Payment Line Items are explicitly avoided here because they reflect cash/invoice events, not recognition.
+
+## Status
+
+PRD complete. In build with finance and Brett — once shipped, replaces the manual Excel reconciliation finance does every quarter.`,
+  },
+  {
     slug: 'utilization',
     title: 'Utilization Report',
     summary: 'Facility space performance — booked vs available hours, prime/non-prime segmentation, opportunity cost, and forward-looking projections.',

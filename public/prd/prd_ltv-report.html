@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LTV Report — PRD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bo-primary:      #0D4774;
+    --bo-text:         #1A1A1A;
+    --bo-text-body:    #4A4A4A;
+    --bo-text-disabled:#B0B0B0;
+    --bond-navy:       #092d4a;
+    --bond-gold:       #d4a853;
+    --bond-surface:    #FFFFFF;
+    --bond-subtle:     #F8F9FA;
+    --bond-border:     #E2E8F0;
+    --success-text:    #0F6E56;
+    --success-bg:      #E1F5EE;
+    --warning-text:    #854F0B;
+    --warning-bg:      #FAEEDA;
+    --error-text:      #A32D2D;
+    --error-bg:        #FCEBEB;
+    --info-text:       #185FA5;
+    --info-bg:         #E6F1FB;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: var(--bond-subtle);
+    color: var(--bo-text);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 40px 24px 80px;
+  }
+
+  h1, h2, h3, .doc-header h1, .section-title, .doc-header-eyebrow, .subsection-label {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* LAYOUT */
+  .page { max-width: 860px; margin: 0 auto; }
+
+  /* HEADER */
+  .doc-header {
+    background: var(--bond-navy);
+    border-radius: 12px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-header::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.08);
+    pointer-events: none;
+  }
+  .doc-header-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--bond-gold); margin-bottom: 10px;
+  }
+  .doc-header h1 {
+    font-size: 28px; font-weight: 700; color: #FFFFFF;
+    line-height: 1.2; margin-bottom: 10px;
+  }
+  .doc-header-sub {
+    font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px;
+  }
+  .doc-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .doc-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .doc-meta-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(255,255,255,0.4); }
+  .doc-meta-value { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); }
+  .status-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    background: rgba(201,168,76,0.18); color: var(--bond-gold);
+    border: 1px solid rgba(201,168,76,0.3);
+  }
+
+  /* STAKEHOLDER SUMMARY BOX */
+  .summary-box {
+    background: var(--info-bg);
+    border: 1px solid #B5D4F4;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+  .summary-box-header {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 700; color: var(--info-text);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
+  }
+  .summary-box-header .icon { font-size: 16px; }
+  .summary-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 13px; color: var(--bo-text-body); }
+  .summary-row:last-child { margin-bottom: 0; }
+  .summary-key { font-weight: 600; color: var(--bo-text); white-space: nowrap; min-width: 120px; }
+
+  /* CORRECTION CALLOUT */
+  .correction-box {
+    background: var(--warning-bg);
+    border: 1px solid #FAC775;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .correction-header {
+    font-size: 12px; font-weight: 700; color: var(--warning-text);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+  }
+  .correction-body { font-size: 13px; color: var(--bo-text-body); line-height: 1.55; }
+  .correction-body strong { color: var(--bo-text); }
+  .correction-body code {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px;
+    background: rgba(255,255,255,0.6); color: var(--warning-text); padding: 1px 5px;
+    border-radius: 3px; white-space: nowrap;
+  }
+
+  /* SECTION */
+  .section {
+    background: var(--bond-surface);
+    border: 1px solid var(--bond-border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 18px 24px 16px;
+    border-bottom: 1px solid var(--bond-border);
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none;
+  }
+  .section-header:hover { background: var(--bond-subtle); }
+  .section-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bo-primary); color: white;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--bo-primary); flex: 1; }
+  .section-chevron { color: var(--bo-text-disabled); font-size: 12px; transition-property: transform; transition-duration: 180ms; }
+  .section.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section-body { padding: 20px 24px; }
+  .section.collapsed .section-body { display: none; }
+
+  /* PROSE */
+  p { color: var(--bo-text-body); margin-bottom: 12px; font-size: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  thead th {
+    background: var(--bond-subtle); font-size: 11px; font-weight: 700;
+    color: var(--bo-text); padding: 9px 12px; text-align: left;
+    border-bottom: 1px solid var(--bond-border); white-space: nowrap;
+  }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid #F1F5F9; color: var(--bo-text-body); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bond-subtle); }
+  td strong { color: var(--bo-text); font-weight: 600; }
+  td code {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px;
+    background: #F1F5F9; color: var(--bo-primary); padding: 1px 5px;
+    border-radius: 3px; white-space: nowrap;
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: #0F1923; color: #e2e8f0;
+    border-radius: 8px; padding: 16px 20px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px; line-height: 1.7;
+    overflow-x: auto; margin-top: 8px;
+  }
+  .code-block .comment { color: #64748B; }
+  .code-block .keyword { color: var(--bond-gold); }
+  .code-block .string { color: #86EFAC; }
+
+  /* TAGS / BADGES */
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px;
+    background: var(--bond-subtle); border: 1px solid var(--bond-border);
+    color: var(--bo-text); margin-right: 4px; margin-bottom: 2px;
+  }
+  .tag-green { background: var(--success-bg); color: var(--success-text); border-color: #9FE1CB; }
+  .tag-orange { background: var(--warning-bg); color: var(--warning-text); border-color: #FAC775; }
+  .tag-blue { background: var(--info-bg); color: var(--info-text); border-color: #B5D4F4; }
+
+  /* OPEN QUESTIONS */
+  .question-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .question-item {
+    background: var(--warning-bg); border: 1px solid #FAC775;
+    border-radius: 8px; padding: 12px 14px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .question-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .question-text { font-size: 13px; color: var(--warning-text); line-height: 1.5; }
+  .question-text strong { color: var(--bo-text); display: block; margin-bottom: 2px; }
+
+  /* SUCCESS CRITERIA */
+  .criteria-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .criteria-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 14px; background: var(--success-bg);
+    border: 1px solid #9FE1CB; border-radius: 8px;
+  }
+  .criteria-check { color: var(--success-text); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .criteria-text { font-size: 13px; color: var(--bo-text-body); line-height: 1.5; }
+
+  /* SCOPE LIST */
+  .scope-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .scope-item {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 13px; color: var(--bo-text-body); padding: 6px 0;
+    border-bottom: 1px solid var(--bond-border);
+  }
+  .scope-item:last-child { border-bottom: none; }
+  .scope-x { color: var(--error-text); font-weight: 700; flex-shrink: 0; }
+
+  /* MODEL ARCHITECTURE */
+  .model-flow { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+  .model-box {
+    background: var(--bond-subtle); border: 1px solid var(--bond-border);
+    border-radius: 8px; padding: 14px 18px;
+  }
+  .model-box-name { font-size: 13px; font-weight: 700; color: var(--bo-primary); font-family: 'SF Mono', 'Fira Code', monospace; }
+  .model-box-desc { font-size: 12px; color: var(--bo-text-body); margin-top: 4px; }
+  .model-box-bullets { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+  .model-box-bullet { font-size: 12px; color: var(--bo-text-body); padding-left: 14px; position: relative; }
+  .model-box-bullet::before { content: '—'; position: absolute; left: 0; color: var(--bo-text-disabled); }
+  .model-arrow {
+    display: flex; align-items: center; justify-content: center;
+    height: 28px; color: var(--bo-text-disabled); font-size: 18px;
+  }
+
+  /* AUDIENCE CARDS */
+  .audience-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+  .audience-card {
+    flex: 1; min-width: 200px; background: var(--bond-subtle);
+    border: 1px solid var(--bond-border); border-radius: 8px; padding: 14px 16px;
+  }
+  .audience-card-role { font-size: 12px; font-weight: 700; color: var(--bo-primary); margin-bottom: 4px; }
+  .audience-card-context { font-size: 12px; color: var(--bo-text-body); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--bond-border); margin: 16px 0; }
+
+  /* SUBSECTION LABEL */
+  .subsection-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--bo-text-disabled); margin-bottom: 10px; margin-top: 18px;
+  }
+  .subsection-label:first-child { margin-top: 0; }
+
+  /* FOOTER */
+  .doc-footer {
+    margin-top: 32px; padding-top: 20px;
+    border-top: 1px solid var(--bond-border);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--bo-text-disabled); flex-wrap: wrap; gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="doc-header-eyebrow">Product Requirements Document</div>
+    <h1>Customer Lifetime Value Report</h1>
+    <div class="doc-header-sub">Cohort-based LTV analysis by first-purchase type — surfacing which entry paths (rental, program, league, membership) produce the highest long-term customer value</div>
+    <div class="doc-meta">
+      <div class="doc-meta-item"><div class="doc-meta-label">Status</div><div class="doc-meta-value"><span class="status-badge">Draft v2</span></div></div>
+      <div class="doc-meta-item"><div class="doc-meta-label">Author</div><div class="doc-meta-value">David Jung</div></div>
+      <div class="doc-meta-item"><div class="doc-meta-label">Last updated</div><div class="doc-meta-value">May 19, 2026</div></div>
+      <div class="doc-meta-item"><div class="doc-meta-label">Tool</div><div class="doc-meta-value">Sigma Computing</div></div>
+      <div class="doc-meta-item"><div class="doc-meta-label">Data</div><div class="doc-meta-value">Snowflake / dbt</div></div>
+    </div>
+  </div>
+
+  <!-- CORRECTION CALLOUT -->
+  <div class="correction-box">
+    <div class="correction-header">⚐ v2 — Revisions after dbt verification</div>
+    <div class="correction-body">
+      The v1 PRD assumed cohorts were defined by "first program registration" with revenue pulled from a <code>UNION</code> of three registration tables. A scan of <code>data_warehouse</code> showed two issues: (1) cohort entry should be <strong>any first purchase</strong> — rental, program, league, or membership — not just programs; and (2) <strong>the <code>actions</code> mart is already a unified purchase ledger</strong> across all product types, with a <code>product_type</code> discriminator and proper recognized-revenue columns. The UNION approach is unnecessary; <code>actions</code> is the source. The revenue column is <code>resource_non_tax_recognition_delta</code> (GAAP recognized revenue), not <code>amount_paid</code> filtered to <code>action_name = 'payment'</code>.
+    </div>
+  </div>
+
+  <!-- STAKEHOLDER SUMMARY -->
+  <div class="summary-box">
+    <div class="summary-box-header"><span class="icon">📋</span> Stakeholder Summary</div>
+    <div class="summary-row"><span class="summary-key">Why</span><span>Facilities have no data on which entry paths produce the highest long-term revenue per customer. A Learn to Skate enrollee may be worth 3–4× more over three years than a one-off ice rental walk-in — but without this report, marketing and program investment decisions are made on gut feel.</span></div>
+    <div class="summary-row"><span class="summary-key">Who</span><span>Facility directors and program managers (external customers); Bond CS team for account reviews and upsell conversations.</span></div>
+    <div class="summary-row"><span class="summary-key">What they'll see</span><span>Average LTV per customer by first-purchase category (rental, program, league, membership); a multi-step pathing Sankey showing where customers go after their first purchase; cumulative revenue accumulation over 36 months; individual customer explorer.</span></div>
+    <div class="summary-row"><span class="summary-key">Data source</span><span>Existing <code>actions</code> mart, filtered to revenue-bearing rows where <code>product_type IN ('reservation', 'registration', 'league_registration', 'membership')</code>. New intermediate dbt model ranks each user's purchases chronologically per organization.</span></div>
+    <div class="summary-row"><span class="summary-key">Timeline est.</span><span>2 weeks. Materially simpler than the v1 design because <code>actions</code> already unifies all purchase types — only the ranking layer and the Sigma build remain.</span></div>
+  </div>
+
+  <!-- 1. PURPOSE -->
+  <div class="section" id="s1">
+    <div class="section-header" onclick="toggle('s1')">
+      <div class="section-num">1</div>
+      <div class="section-title">Purpose</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <p>This report enables facility managers at Bond Sports partner organizations to understand how much long-term revenue a customer generates based on the <strong>first thing they ever bought</strong> — whether that was an ice rental, a Learn to Skate enrollment, a league signup, or a membership. By surfacing that a Learn to Skate enrollee produces $1,284 in average revenue over three years versus $391 for a rental-only walk-in, facilities can make smarter decisions about where to invest marketing dollars and which entry paths to prioritize.</p>
+      <p>For Bond, this report is a CS tool: it can be shown during account reviews to demonstrate the ROI of specific entry paths and drive upsell conversations around high-value categories. It is also a direct input into the broader LTV narrative Bond needs to tell investors and operators.</p>
+    </div>
+  </div>
+
+  <!-- 2. AUDIENCE -->
+  <div class="section" id="s2">
+    <div class="section-header" onclick="toggle('s2')">
+      <div class="section-num">2</div>
+      <div class="section-title">Audience &amp; Use Cases</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <div class="audience-grid">
+        <div class="audience-card">
+          <div class="audience-card-role">Facility Directors / Program Managers</div>
+          <div class="audience-card-context">Monthly or quarterly review. Deciding which entry paths to market and prioritize based on long-term customer value — not just first-touch revenue.</div>
+        </div>
+        <div class="audience-card">
+          <div class="audience-card-role">Bond CS Team</div>
+          <div class="audience-card-context">Account review conversations. Showing clients which entry paths produce the highest LTV customers. Supporting upsell and program expansion discussions.</div>
+        </div>
+        <div class="audience-card">
+          <div class="audience-card-role">Bond Leadership (Marc, Matt)</div>
+          <div class="audience-card-context">Portfolio-level view across all organizations to benchmark facilities and understand which entry paths drive the most durable customer relationships.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. KEY METRICS -->
+  <div class="section" id="s3">
+    <div class="section-header" onclick="toggle('s3')">
+      <div class="section-num">3</div>
+      <div class="section-title">Key Metrics (KPI Tiles)</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Definition</th>
+            <th>Source</th>
+            <th>Direction</th>
+            <th>Format</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Avg LTV — All Customers</strong></td>
+            <td>SUM(<code>resource_non_tax_recognition_delta</code>) ÷ distinct <code>participant_user_id</code>s with ≥2 purchases</td>
+            <td><code>actions</code> mart</td>
+            <td><span class="tag-green tag">Higher = better</span></td>
+            <td>$X,XXX</td>
+          </tr>
+          <tr>
+            <td><strong>Top Cohort LTV</strong></td>
+            <td>Avg LTV for the single highest-performing first-purchase category</td>
+            <td>Same, partitioned by entry category</td>
+            <td><span class="tag-green tag">Higher = better</span></td>
+            <td>$X,XXX + label</td>
+          </tr>
+          <tr>
+            <td><strong>Customers Analyzed</strong></td>
+            <td>Count of distinct <code>(participant_user_id, organization_id)</code> pairs with ≥2 purchases in window</td>
+            <td><code>actions</code> mart</td>
+            <td>More = more reliable</td>
+            <td>X,XXX</td>
+          </tr>
+          <tr>
+            <td><strong>Avg LTV — 12 Months</strong></td>
+            <td>Avg recognized revenue per user in months 0–12 after first purchase</td>
+            <td><code>actions</code> windowed by month</td>
+            <td><span class="tag-orange tag">Watch for low values</span></td>
+            <td>$XXX</td>
+          </tr>
+          <tr>
+            <td><strong>Avg LTV — 36 Months</strong></td>
+            <td>Avg recognized revenue per user across the full 36-month window</td>
+            <td><code>actions</code> windowed by month</td>
+            <td><span class="tag-green tag">Higher = better</span></td>
+            <td>$X,XXX</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. LAYOUT -->
+  <div class="section" id="s4">
+    <div class="section-header" onclick="toggle('s4')">
+      <div class="section-num">4</div>
+      <div class="section-title">Layout &amp; Tab Structure</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <div class="subsection-label">Tab 1 — LTV Overview</div>
+      <p>KPI tiles → filter bar → bar chart (avg 36-mo LTV by first-purchase category, color-coded above/at/below average) → cohort comparison heatmap table (LTV at 6, 12, 24, 36 months per category) → top customers by lifetime revenue. Categories: <strong>Rental</strong>, <strong>Program</strong>, <strong>League</strong>, <strong>Membership</strong>. Within Program and League, an optional secondary breakdown by <code>program_code</code> (e.g. "LTS Level 1", "Adult Hockey") for facilities that want finer detail.</p>
+
+      <div class="divider"></div>
+      <div class="subsection-label">Tab 2 — Purchase Pathing</div>
+      <p>Two stacked Sankey charts. The <strong>summary Sankey</strong> shows the one-step flow across all entry categories simultaneously (first purchase → second purchase), good for a portfolio view. The <strong>deep-dive Sankey</strong> lets you select a single entry category and traces the full multi-step path (up to 4 levels for high-volume categories) with hover tooltips showing counts and percentages at each step. A "Top Pathways" table below surfaces the highest-volume and highest-LTV two-step combinations.</p>
+
+      <div class="divider"></div>
+      <div class="subsection-label">Tab 3 — Cohort Timeline</div>
+      <p>D3 line chart: X-axis = months 0–36 since first purchase, Y-axis = cumulative avg recognized revenue. One line per entry category, labeled at the right edge. Reference line at overall avg LTV. Supporting table shows key inflection points and the month-range where each category's revenue accelerates.</p>
+
+      <div class="divider"></div>
+      <div class="subsection-label">Tab 4 — Customer Explorer</div>
+      <p>Live-searchable table of individual customers. Columns: name, organization, entry category, full purchase journey (shown as chips with category icons), total purchases, total spend, years active, status. Filterable by entry category and status. Intended for CS account review prep and spot-checking model accuracy.</p>
+    </div>
+  </div>
+
+  <!-- 5. FILTERS -->
+  <div class="section" id="s5">
+    <div class="section-header" onclick="toggle('s5')">
+      <div class="section-num">5</div>
+      <div class="section-title">Filters &amp; Controls</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr><th>Filter</th><th>Type</th><th>Default</th><th>Applies to</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Organization</strong></td><td>Multi-select dropdown</td><td>All orgs</td><td>All metrics</td></tr>
+          <tr><td><strong>First Purchase Date</strong></td><td>Date range picker</td><td>Last 3 years</td><td>Cohort entry window</td></tr>
+          <tr><td><strong>Entry Category</strong></td><td>Multi-select (Rental, Program, League, Membership)</td><td>All categories</td><td>Cohort definition</td></tr>
+          <tr><td><strong>Program Code</strong></td><td>Multi-select dropdown</td><td>All</td><td>Cohort sub-definition (Program / League only)</td></tr>
+          <tr><td><strong>LTV Window</strong></td><td>Select (12 / 24 / 36 mo / All Time)</td><td>36 months</td><td>All LTV calculations</td></tr>
+          <tr><td><strong>Min Purchases</strong></td><td>Select (1+ / 2+ / 3+)</td><td>2+</td><td>Filters one-time visitors</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 6. DATA REQUIREMENTS -->
+  <div class="section" id="s6">
+    <div class="section-header" onclick="toggle('s6')">
+      <div class="section-num">6</div>
+      <div class="section-title">Data Requirements</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <p>All fields below resolve directly from the existing <code>actions</code> mart (<code>models/marts/actions.sql</code>). No UNION across registration tables is required — <code>actions</code> is already the unified ledger across product types.</p>
+
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Source</th><th>Transformation</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>participant_user_id</code></td>
+            <td><code>actions.participant_user_id</code></td>
+            <td>None</td>
+            <td>Primary customer key throughout. Already populated on actions for all purchase types.</td>
+          </tr>
+          <tr>
+            <td><code>organization_id</code></td>
+            <td><code>actions.organization_id</code></td>
+            <td>None</td>
+            <td>Cohort scope. A user playing at two facilities is two separate customers.</td>
+          </tr>
+          <tr>
+            <td><code>product_type</code></td>
+            <td><code>actions.product_type</code></td>
+            <td>Map to friendly entry-category label</td>
+            <td>Discriminator values verified in <code>i_mapped_line_items.sql</code>: <code>'reservation'</code> → Rental, <code>'registration'</code> → Program, <code>'league_registration'</code> → League, <code>'membership'</code> → Membership. Filter <em>out</em>: <code>'goods'</code>, <code>'convenience_fee'</code>, <code>'tax'</code>.</td>
+          </tr>
+          <tr>
+            <td><code>first_purchase_at</code></td>
+            <td>Derived</td>
+            <td><code>MIN(action_time)</code> per <code>(participant_user_id, organization_id)</code> where <code>action_name = 'line_item_create'</code> and <code>product_type</code> in entry scope</td>
+            <td>Use the line-item-create event time, not first payment — handles rentals (no <code>registered_at</code>) uniformly with programs.</td>
+          </tr>
+          <tr>
+            <td><code>entry_category</code></td>
+            <td>Derived</td>
+            <td><code>product_type</code> of the row where rank = 1 (mapped to friendly label)</td>
+            <td>The cohort assignment key.</td>
+          </tr>
+          <tr>
+            <td><code>entry_program_code</code></td>
+            <td><code>actions.program_code</code> (Program/League rows) — fallback <code>actions.product_code</code></td>
+            <td>From the rank-1 row</td>
+            <td>Secondary cohort label for Program and League categories. Stable across seasons. Null for Rental and Membership.</td>
+          </tr>
+          <tr>
+            <td><code>months_since_first_purchase</code></td>
+            <td>Derived</td>
+            <td><code>DATEDIFF(month, first_purchase_at, action_time)</code></td>
+            <td>Bucket 0–36 for time-windowed LTV calculations</td>
+          </tr>
+          <tr>
+            <td><code>recognized_revenue</code></td>
+            <td><code>actions.resource_non_tax_recognition_delta</code></td>
+            <td>SUM per user, windowed by months_since_first</td>
+            <td><strong>GAAP recognized revenue.</strong> Already net of refunds/voids/discounts (deltas can be negative). Do not filter on <code>action_name</code> — recognition spans many action types (event_occur, slot_occur, punch_pass_redemption, membership_elapse, etc.).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subsection-label" style="margin-top:20px;">Known Data Quality Issues</div>
+      <table>
+        <thead><tr><th>Issue</th><th>Impact</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>No sequential ordering in source</strong></td>
+            <td>Cannot simply read "purchase #1, #2, #3" — must derive</td>
+            <td>Rank line-item-create actions per <code>(participant_user_id, organization_id)</code> by <code>action_time</code> ASC using <code>ROW_NUMBER()</code></td>
+          </tr>
+          <tr>
+            <td><strong>Cross-org users</strong></td>
+            <td>A <code>participant_user_id</code> at two facilities could contaminate cohorts</td>
+            <td>Scope all cohort logic to <code>(participant_user_id, organization_id)</code> pairs</td>
+          </tr>
+          <tr>
+            <td><strong>Same-timestamp ties</strong></td>
+            <td>Two purchases in the same transaction tie on <code>action_time</code></td>
+            <td>Add <code>line_item_sequence</code> as a tiebreaker in the ORDER BY clause</td>
+          </tr>
+          <tr>
+            <td><strong>Refunds/voids as negative deltas</strong></td>
+            <td>A full refund of a first purchase could leave a user with net-zero or negative LTV</td>
+            <td>Acceptable — that's the GAAP truth. Flag users with all-negative LTV for QA review only.</td>
+          </tr>
+          <tr>
+            <td><strong>Anonymous / non-attributed rows</strong></td>
+            <td>Some actions may have NULL <code>participant_user_id</code> (e.g. some org-level rentals)</td>
+            <td>Filter <code>WHERE participant_user_id IS NOT NULL</code> in the ranking model. Quantify the excluded rows in QA.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 7. MODEL ARCHITECTURE -->
+  <div class="section" id="s7">
+    <div class="section-header" onclick="toggle('s7')">
+      <div class="section-num">7</div>
+      <div class="section-title">Recommended dbt Model Architecture</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <p>Two new models (down from three in v1 — the UNION layer is no longer needed). Both materialize as <code>table</code>; ranking and windowing are too expensive to recompute on every query.</p>
+      <div class="model-flow">
+        <div class="model-box">
+          <div class="model-box-name">int_customer_purchases_ordered</div>
+          <div class="model-box-desc">Intermediate model. Ranks each user's purchases chronologically per organization, from the <code>actions</code> mart.</div>
+          <div class="model-box-bullets">
+            <div class="model-box-bullet">Source: <code>{{ ref('actions') }}</code> filtered to <code>action_name = 'line_item_create'</code> and <code>product_type IN ('reservation', 'registration', 'league_registration', 'membership')</code></div>
+            <div class="model-box-bullet"><code>ROW_NUMBER() OVER (PARTITION BY participant_user_id, organization_id ORDER BY action_time ASC, line_item_sequence ASC)</code> AS purchase_rank</div>
+            <div class="model-box-bullet">Capture <code>entry_category</code>, <code>entry_program_code</code>, <code>first_purchase_at</code> from rank-1 row (window broadcast)</div>
+            <div class="model-box-bullet">Output: one row per purchase per user per org, with rank and entry-cohort metadata</div>
+          </div>
+        </div>
+        <div class="model-arrow">↓</div>
+        <div class="model-box">
+          <div class="model-box-name">mart_customer_ltv</div>
+          <div class="model-box-desc">Final mart. Joins the ranked purchases back to <code>actions</code> for full recognized-revenue accumulation, then pre-aggregates LTV by entry category.</div>
+          <div class="model-box-bullets">
+            <div class="model-box-bullet">Join <code>int_customer_purchases_ordered</code> (rank = 1 metadata) to <code>actions</code> on <code>(participant_user_id, organization_id)</code></div>
+            <div class="model-box-bullet">Compute <code>months_since_first = DATEDIFF(month, first_purchase_at, action_time)</code></div>
+            <div class="model-box-bullet">SUM <code>resource_non_tax_recognition_delta</code> per user per month bucket; cumulative window</div>
+            <div class="model-box-bullet">Aggregate to AVG LTV at 6, 12, 24, 36 months per <code>(entry_category, entry_program_code, organization_id)</code></div>
+            <div class="model-box-bullet">Output: user-grain rows for the Customer Explorer tab; cohort aggregates for the other three tabs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. REFRESH -->
+  <div class="section" id="s8">
+    <div class="section-header" onclick="toggle('s8')">
+      <div class="section-num">8</div>
+      <div class="section-title">Refresh &amp; Performance</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Parameter</th><th>Target</th><th>Acceptable Fallback</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Refresh cadence</strong></td><td>Daily</td><td>Weekly (not preferred — creates friction for account review use case)</td></tr>
+          <tr><td><strong>Materialization</strong></td><td><code>table</code> for both new models</td><td>N/A — views will be too slow for window functions at this scale</td></tr>
+          <tr><td><strong>Query latency (Sigma)</strong></td><td>&lt;10s for single-org filter</td><td>&lt;30s for all-orgs view</td></tr>
+          <tr><td><strong>Incremental strategy</strong></td><td>Full refresh daily (simpler, safer)</td><td>Incremental on <code>action_time</code> if runtime becomes a concern</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 9. OUT OF SCOPE -->
+  <div class="section" id="s9">
+    <div class="section-header" onclick="toggle('s9')">
+      <div class="section-num">9</div>
+      <div class="section-title">Out of Scope</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <ul class="scope-list">
+        <li class="scope-item"><span class="scope-x">✕</span><span>Multi-touch attribution — only the <em>first</em> purchase drives cohort assignment</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span>Predictive or projected LTV — realized historical recognized revenue only</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span>Sub-daily refresh</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span>Cross-org customer tracking — a user appearing at two facilities is treated as two separate customers</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span>Individual PII export from the report itself</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span>Revenue attribution to marketing channels (source of acquisition) — separate future workstream</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span><strong>Retail / goods purchases as entry points</strong> — a $5 water bottle does not define a customer's journey. Goods revenue earned <em>after</em> the cohort entry purchase still accrues to LTV; goods just cannot be the entry trigger.</span></li>
+        <li class="scope-item"><span class="scope-x">✕</span><span>Convenience fees — excluded from both entry definition and LTV totals</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10. OPEN QUESTIONS -->
+  <div class="section" id="s10">
+    <div class="section-header" onclick="toggle('s10')">
+      <div class="section-num">10</div>
+      <div class="section-title">Open Questions</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <ul class="question-list">
+        <li class="question-item">
+          <span class="question-icon">⚠</span>
+          <div class="question-text">
+            <strong>Q1 — Punch pass purchases as a fifth entry category</strong>
+            Packages (punch passes) are <code>product_type = 'package'</code> in <code>actions</code>. They were not in the four categories confirmed for v2 (Rental / Program / League / Membership). A parent buying a 10-class punch pass before enrolling is a meaningful "first purchase" — but it could also be argued punch passes are just a payment method for programs. Decision needed: treat as a fifth entry category, fold into Program, or exclude entirely.
+          </div>
+        </li>
+        <li class="question-item">
+          <span class="question-icon">⚠</span>
+          <div class="question-text">
+            <strong>Q2 — Rental entry label granularity</strong>
+            For the Rental category, should the cohort sub-label be the slot's facility / activity (e.g. "Ice Rink Rental", "Studio Rental") or just a flat "Rental" bucket? <code>actions.slot_name</code>, <code>activity_code</code>, and <code>facility_code</code> are all available. Recommend <code>activity_code</code> as default but needs confirmation from a facility manager about what they actually slice on.
+          </div>
+        </li>
+        <li class="question-item">
+          <span class="question-icon">⚠</span>
+          <div class="question-text">
+            <strong>Q3 — Minimum purchases threshold</strong>
+            Should customers with only 1 lifetime purchase be included in LTV averages? Including them pulls averages down. Recommend excluding (≥2 purchases) as default, with a filter toggle.
+          </div>
+        </li>
+        <li class="question-item">
+          <span class="question-icon">⚠</span>
+          <div class="question-text">
+            <strong>Q4 — Treatment of family / multi-participant invoices</strong>
+            A parent invoice with multiple <code>participant_user_id</code>s (kids on different programs) creates one purchase row per participant in <code>actions</code>. Confirm this is the desired behavior — each kid gets their own LTV journey scoped to the parent's organization — rather than rolling up to the paying user.
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 11. SUCCESS CRITERIA -->
+  <div class="section" id="s11">
+    <div class="section-header" onclick="toggle('s11')">
+      <div class="section-num">11</div>
+      <div class="section-title">Success Criteria</div>
+      <div class="section-chevron">▾</div>
+    </div>
+    <div class="section-body">
+      <ul class="criteria-list">
+        <li class="criteria-item">
+          <span class="criteria-check">✓</span>
+          <div class="criteria-text"><strong>LTV figures are reproducible:</strong> manually summing <code>resource_non_tax_recognition_delta</code> for a known org's top 10 customers and dividing by user count matches the report within rounding tolerance.</div>
+        </li>
+        <li class="criteria-item">
+          <span class="criteria-check">✓</span>
+          <div class="criteria-text"><strong>"First purchase" is correctly identified:</strong> for 5 manually verified users — including at least one rental-first and one membership-first — the model assigns the category matching their chronologically earliest line-item-create action.</div>
+        </li>
+        <li class="criteria-item">
+          <span class="criteria-check">✓</span>
+          <div class="criteria-text"><strong>Cohort table ranks correctly:</strong> entry categories are sorted in descending 36-month LTV order and match a manual spreadsheet calculation for a single org.</div>
+        </li>
+        <li class="criteria-item">
+          <span class="criteria-check">✓</span>
+          <div class="criteria-text"><strong>Recognized revenue ties to finance:</strong> total recognized revenue across all cohorts in a window equals the same SUM of <code>resource_non_tax_recognition_delta</code> from the existing Revenue Recognition report for the same window (excluding goods/convenience_fee/tax). Off-by-cohort-filter is the only acceptable variance.</div>
+        </li>
+        <li class="criteria-item">
+          <span class="criteria-check">✓</span>
+          <div class="criteria-text"><strong>Performance:</strong> report loads in under 10 seconds for a single-org filter; under 30 seconds for all-orgs.</div>
+        </li>
+        <li class="criteria-item">
+          <span class="criteria-check">✓</span>
+          <div class="criteria-text"><strong>Pathing Sankey is coherent:</strong> the sum of all flows out of each entry-category node equals the total customer count for that category in the cohort table.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span>LTV Report PRD v2 · Bond Sports Analytics · May 2026</span>
+    <span>Questions → David Jung (david.jung@bondsports.co)</span>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+</script>
+</body>
+</html>

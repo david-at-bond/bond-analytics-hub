@@ -31,6 +31,16 @@ export const tools = [
     published: true,
   },
   {
+    id: 'analytics-hub',
+    name: 'Bond Analytics Hub',
+    description: 'This portal — central directory of Data & Analytics tools, reports, PRDs, knowledge base articles, and shipping analytics.',
+    url: 'https://bond-analytics-hub.netlify.app',
+    host: 'Netlify',
+    owner: 'david.jung@bondsports.co',
+    category: 'Internal Apps',
+    published: true,
+  },
+  {
     id: 'sigma',
     name: 'Sigma',
     description: 'Bond\'s primary BI and reporting workspace. Live dashboards, workbooks, and ad-hoc analysis for operators and internal teams.',

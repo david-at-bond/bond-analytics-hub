@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reporting &amp; Analytics · Q2 2026 Board Update</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: #0a0f1e;
+    color: #e2e8f0;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 72px 64px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: 10%;
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #a5b4fc;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: 48px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .hero h1 span { color: #818cf8; }
+  .hero .tagline {
+    font-size: 18px;
+    color: #94a3b8;
+    font-weight: 400;
+    max-width: 600px;
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 28px;
+    font-size: 12px;
+    color: #475569;
+    font-weight: 500;
+  }
+  .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── Layout ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 56px 40px; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #6366f1;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 36px;
+  }
+
+  /* ── Big Numbers ── */
+  .numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 72px;
+  }
+  .number-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .number-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent, #6366f1);
+    border-radius: 0 0 16px 16px;
+  }
+  .number-card .n {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent, #818cf8);
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .number-card .label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .number-card .sub {
+    font-size: 11px;
+    color: #475569;
+    margin-top: 4px;
+  }
+
+  /* ── Team ── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 72px;
+  }
+  .team-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  .team-card .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--av-bg, linear-gradient(135deg, #6366f1, #7c3aed));
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .team-card .name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 2px;
+  }
+  .team-card .role {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+  }
+  .team-card .bio {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.7;
+  }
+  .team-card .highlight {
+    margin-top: 14px;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #a5b4fc;
+    font-weight: 500;
+  }
+
+  /* ── Projects ── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .project-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px 26px;
+    position: relative;
+  }
+  .project-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(160deg, rgba(99,102,241,0.08), rgba(124,58,237,0.05));
+    border-color: rgba(99,102,241,0.2);
+  }
+  .project-card .project-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+    display: block;
+  }
+  .project-card .project-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .project-card .project-type {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6366f1;
+    margin-bottom: 14px;
+  }
+  .project-card .project-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-bottom: 18px;
+  }
+  .project-card .project-desc strong { color: #cbd5e1; font-weight: 600; }
+  .bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .bullet::before {
+    content: '→';
+    color: #6366f1;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .report-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .report-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  /* ── Customers ── */
+  .customers-section { margin-bottom: 72px; }
+  .customers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .customer-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .customer-card .cname {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 4px;
+  }
+  .customer-card .ctype {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #22c55e;
+    margin-bottom: 8px;
+  }
+  .customer-card .cdesc {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  /* ── Infrastructure ── */
+  .infra-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 72px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .infra-stat-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .infra-stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .infra-stat .bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .infra-stat .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--bar-color, #6366f1);
+  }
+  .infra-stat .stat-label {
+    font-size: 12px;
+    color: #64748b;
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .infra-stat .stat-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e2e8f0;
+    width: 48px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── Next ── */
+  .next-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 72px;
+  }
+  .next-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-left: 3px solid var(--accent, #6366f1);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .next-card .ntitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 6px;
+  }
+  .next-card .ndesc {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.6;
+  }
+  .next-card .nstatus {
+    margin-top: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent, #6366f1);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 28px 40px;
+    text-align: center;
+    font-size: 11px;
+    color: #334155;
+  }
+
+  /* ── Divider ── */
+  .section-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 0 0 72px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-badge">◆ Board Update</div>
+  <h1>Reporting &amp; <span>Analytics</span></h1>
+  <div class="tagline">The data layer that powers Bond's financial customers — and the team that keeps it running.</div>
+  <div class="hero-meta">
+    <span>📅 Q2 2026</span>
+    <span>👤 David Jung, Director of Data &amp; Analytics</span>
+    <span>🏢 Bond Sports</span>
+  </div>
+</div>
+
+<!-- ── Page Content ── -->
+<div class="page">
+
+  <!-- Numbers -->
+  <div class="numbers-grid">
+    <div class="number-card" style="--accent:#f59e0b">
+      <div class="n">10+</div>
+      <div class="label">Enterprise Customers</div>
+      <div class="sub">Closing monthly books with Bond data</div>
+    </div>
+    <div class="number-card" style="--accent:#22c55e">
+      <div class="n">35</div>
+      <div class="label">Sigma Reports</div>
+      <div class="sub">Across 6 workbooks, in production</div>
+    </div>
+    <div class="number-card" style="--accent:#818cf8">
+      <div class="n">287</div>
+      <div class="label">Data Models</div>
+      <div class="sub">Powering every number in Sigma</div>
+    </div>
+    <div class="number-card" style="--accent:#f97316">
+      <div class="n">24hr</div>
+      <div class="label">Response SLA</div>
+      <div class="sub">On all customer reporting issues</div>
+    </div>
+  </div>
+
+  <!-- Team -->
+  <div class="section-label">The Team</div>
+  <div class="section-title">Three People. One Data Platform.</div>
+  <div class="section-sub">A small, senior team doing work that would typically require 6–8 people.</div>
+
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="avatar" style="--av-bg: linear-gradient(135deg, #6366f1, #4f46e5)">DJ</div>
+      <div class="name">David Jung</div>
+      <div class="role">Director of Data &amp; Analytics</div>
+      <div class="bio">Owns the full reporting suite — from raw data models to the customer-facing Sigma dashboards that enterprise finance teams use to close their books. Also the primary technical contact for customer escalations, and the bridge between CS and engineering.</div>
+      <div class="highlight">Financial accounting depth rarely found on a data team — runs live month-end close sessions with customer controllers and CFOs.</div>
+    </div>
+
+    <div class="team-card">
+      <div class="avatar" style="--av-bg: linear-gradient(135deg, #dc2626, #b91c1c)">B</div>
+      <div class="name">Brett Griffin</div>
+      <div class="role">Platform &amp; Data Engineer</div>
+      <div class="bio">Architect of Bond's core data infrastructure — the payment pipeline, session and season data models, accrual accounting engine, and Sigma publishing layer. One of the first engineers in the country to hold the "data engineer" title, with 15+ years in the field.</div>
+      <div class="highlight">The accrual accounting architecture Brett has built is sophisticated enough that a payments industry CEO called it genuinely ambitious for a company Bond's size.</div>
+    </div>
+
+    <div class="team-card">
+      <div class="avatar" style="--av-bg: linear-gradient(135deg, #0891b2, #0e7490)">LC</div>
+      <div class="name">Logan Cashman</div>
+      <div class="role">Analytics Engineer</div>
+      <div class="bio">Builds and maintains Bond's analytical dashboards — churn, membership, space utilization — and owns the data dictionary and ERD that make Bond's data legible to partners and product teams. Growing rapidly as a full-stack analytics engineer.</div>
+      <div class="highlight">Led the Mosaic Quarter data dictionary walkthrough, enabling Bond's first strategic data-sharing partnership.</div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- Projects -->
+  <div class="section-label">What We've Built</div>
+  <div class="section-title">Products, Tools &amp; Infrastructure</div>
+  <div class="section-sub">Shipped this year — each one built to handle real customer volume, not prototype work.</div>
+
+  <div class="projects-grid" style="margin-bottom:72px">
+
+    <!-- Featured: Reports Suite -->
+    <div class="project-card featured">
+      <span class="project-icon">📊</span>
+      <div class="project-name">Financial Reporting Suite</div>
+      <div class="project-type">Customer-Facing Product · Sigma</div>
+      <div class="project-desc">
+        35 production reports across 6 Sigma workbooks, used by enterprise sports facilities to close their monthly books. Built on top of Bond's Snowflake warehouse — replacing a legacy Qlik system that couldn't handle accrual accounting at scale. <strong>Enterprise customers use these reports to pass annual audits, reconcile Stripe deposits, and file GL entries.</strong>
+      </div>
+      <div class="bullets">
+        <div class="bullet">AR Aging — accounts receivable by age, FIFO payment application, exportable to GL systems</div>
+        <div class="bullet">Revenue Recognition — recognized vs. deferred at the GL level; deferred balance schedule for audit footnotes</div>
+        <div class="bullet">All Financial Activity — the unified financial ledger replacing Qlik's all-in-one export</div>
+        <div class="bullet">Payments &amp; Cash Collection — Stripe reconciliation, ACH tracking, deposit verification</div>
+        <div class="bullet">Trending Analysis — GL-level year-over-year comparison, launched Q1 2026</div>
+        <div class="bullet">Public Skate, Utilization, Churn/Membership — operational reporting now in active development</div>
+      </div>
+    </div>
+
+    <!-- R&A Roadmap Dashboard -->
+    <div class="project-card">
+      <span class="project-icon">🗺️</span>
+      <div class="project-name">R&amp;A Roadmap Dashboard</div>
+      <div class="project-type">Internal Leadership Tool · React</div>
+      <div class="project-desc">
+        A real-time visibility layer built for non-technical leadership. Pulls live from JIRA, translates engineering tickets into plain English using AI, and surfaces customer impact — which accounts are affected by active work, who on the team is carrying load, and what's coming next quarter.
+      </div>
+      <div class="bullets">
+        <div class="bullet">AI-powered summaries: JIRA ticket language rewritten for C-suite reading, automatically</div>
+        <div class="bullet">Customer tagging: see which enterprise accounts are affected by active tickets</div>
+        <div class="bullet">Team load view: active work per engineer, visible in one screen</div>
+        <div class="bullet">JIRA write-back: update priorities, due dates, and post comments without leaving the dashboard</div>
+      </div>
+    </div>
+
+    <!-- Email Triage -->
+    <div class="project-card">
+      <span class="project-icon">📬</span>
+      <div class="project-name">Customer Issue Triage System</div>
+      <div class="project-type">Internal Operations Tool · AI-Powered</div>
+      <div class="project-desc">
+        An AI-powered dashboard that reads Bond's customer success inbox, classifies reporting issues automatically using Claude, and surfaces them as a prioritized queue — with temperature scoring, SLA tracking, and direct JIRA ticket creation.
+      </div>
+      <div class="bullets">
+        <div class="bullet">Every customer email triaged within minutes — no issues fall through the cracks</div>
+        <div class="bullet">24-hour response SLA now enforced and visible across the team</div>
+        <div class="bullet">Temperature scoring flags high-risk issues (finance escalations, exec involvement) automatically</div>
+        <div class="bullet">Daily Slack digest keeps CS and data teams aligned without a meeting</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Customers -->
+  <div class="section-label">Who We Serve</div>
+  <div class="section-title">Enterprise Customers Closing Books with Bond</div>
+  <div class="section-sub">Finance and accounting teams at these facilities rely on Bond data to close their monthly books, recognize revenue, and pass audits.</div>
+
+  <div class="customers-section">
+    <div class="customers-grid">
+      <div class="customer-card">
+        <div class="cname">Sensplex</div>
+        <div class="ctype">Ottawa Senators Facilities</div>
+        <div class="cdesc">Multi-facility operation running accrual close monthly. Controller and finance director use AR Aging and AFA as their primary reconciliation tools.</div>
+      </div>
+      <div class="customer-card">
+        <div class="cname">UOLF</div>
+        <div class="ctype">Utah Olympic Legacy Foundation</div>
+        <div class="cdesc">Revenue recognition and AR reconciliation at audit grade. Finance VP engaged directly on data model decisions for their annual close.</div>
+      </div>
+      <div class="customer-card">
+        <div class="cname">SFM — Sports Facilities Mgmt</div>
+        <div class="ctype">9–11 Facility Network</div>
+        <div class="cdesc">Bond's REVREC standard is being adopted as "the SFM Way" across their entire portfolio — a multi-facility rollout of Bond's accounting methodology.</div>
+      </div>
+      <div class="customer-card">
+        <div class="cname">Kemper Sports</div>
+        <div class="ctype">Multi-Location Operator</div>
+        <div class="cdesc">Monthly close support. GL troubleshooting and RevRec validation for their accounting team.</div>
+      </div>
+      <div class="customer-card">
+        <div class="cname">Chelsea Piers</div>
+        <div class="ctype">Major Urban Sports Complex</div>
+        <div class="cdesc">Audit trail requirements driving new Bond feature work. Chief Accounting Officer engaged directly.</div>
+      </div>
+      <div class="customer-card">
+        <div class="cname">Mosaic Quarter</div>
+        <div class="ctype">Strategic Data Partnership</div>
+        <div class="cdesc">Bond's first Snowflake data-sharing partnership. Logan delivered the data dictionary and ERD that made the integration possible.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- Infrastructure -->
+  <div class="section-label">The Foundation</div>
+  <div class="section-title">What's Under the Hood</div>
+  <div class="section-sub">The infrastructure that makes every report possible — and that scales as Bond adds customers.</div>
+
+  <div class="infra-card">
+    <div>
+      <div style="font-size:15px; font-weight:700; color:#f8fafc; margin-bottom:8px">Snowflake + dbt Data Warehouse</div>
+      <div style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:20px">
+        Bond's Snowflake warehouse is the single source of truth for every financial number the company produces. Raw Postgres data flows through 287 SQL models before reaching any report — transforming payment events, registration records, and billing data into clean, auditable financial outputs.
+        <br /><br />
+        The model covers everything from AR aging line items to accrual schedules, from Stripe reconciliation to space utilization. It's also the foundation for Bond's data-sharing partnerships.
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <span style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); border-radius:20px; padding:4px 12px; font-size:11px; color:#a5b4fc;">Snowflake</span>
+        <span style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); border-radius:20px; padding:4px 12px; font-size:11px; color:#a5b4fc;">dbt Core</span>
+        <span style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); border-radius:20px; padding:4px 12px; font-size:11px; color:#a5b4fc;">Sigma</span>
+        <span style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); border-radius:20px; padding:4px 12px; font-size:11px; color:#a5b4fc;">Postgres</span>
+        <span style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); border-radius:20px; padding:4px 12px; font-size:11px; color:#a5b4fc;">Stripe</span>
+      </div>
+    </div>
+    <div class="infra-stat-row">
+      <div class="infra-stat" style="--bar-color:#f59e0b">
+        <div class="stat-label">Financial models</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:90%"></div></div>
+        <div class="stat-val">287</div>
+      </div>
+      <div class="infra-stat" style="--bar-color:#22c55e">
+        <div class="stat-label">Reports in production</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:85%"></div></div>
+        <div class="stat-val">35</div>
+      </div>
+      <div class="infra-stat" style="--bar-color:#818cf8">
+        <div class="stat-label">Customer accounts live</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:80%"></div></div>
+        <div class="stat-val">10+</div>
+      </div>
+      <div class="infra-stat" style="--bar-color:#f97316">
+        <div class="stat-label">Accrual models</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:60%"></div></div>
+        <div class="stat-val">14+</div>
+      </div>
+      <div class="infra-stat" style="--bar-color:#0891b2">
+        <div class="stat-label">Sigma reports</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:95%"></div></div>
+        <div class="stat-val">35</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What's Next -->
+  <div class="section-label">What's Next</div>
+  <div class="section-title">Coming This Quarter</div>
+  <div class="section-sub">Priorities for Q2–Q3 2026.</div>
+
+  <div class="next-grid">
+    <div class="next-card" style="--accent:#f59e0b">
+      <div class="ntitle">Sigma API Integration</div>
+      <div class="ndesc">Automating customer onboarding, user provisioning, and workbook configuration via the Sigma API — removing manual setup overhead for each new account.</div>
+      <div class="nstatus">In Progress</div>
+    </div>
+    <div class="next-card" style="--accent:#22c55e">
+      <div class="ntitle">Space Utilization Reports</div>
+      <div class="ndesc">Completing the utilization model and customer-facing dashboard — a frequently requested capability for facilities managing court and rink scheduling.</div>
+      <div class="nstatus">In Progress</div>
+    </div>
+    <div class="next-card" style="--accent:#818cf8">
+      <div class="ntitle">Salesforce → Snowflake</div>
+      <div class="ndesc">Closing the last manual data gap: getting Salesforce customer metadata into Snowflake, replacing the spreadsheets Nicole and Louis maintain today.</div>
+      <div class="nstatus">Planned</div>
+    </div>
+    <div class="next-card" style="--accent:#f97316">
+      <div class="ntitle">AFA Accuracy Completion</div>
+      <div class="ndesc">Final fixes to the All Financial Activity report — resolving the remaining payment column edge cases that require customers to cross-reference multiple reports.</div>
+      <div class="nstatus">In Progress</div>
+    </div>
+    <div class="next-card" style="--accent:#0891b2">
+      <div class="ntitle">Chelsea Piers Audit Trail</div>
+      <div class="ndesc">Building the data change audit log required for Chelsea Piers' annual audit process — a new capability for Bond's enterprise tier.</div>
+      <div class="nstatus">Planned</div>
+    </div>
+    <div class="next-card" style="--accent:#db2777">
+      <div class="ntitle">SFM Portfolio Rollout</div>
+      <div class="ndesc">Completing the REVREC standardization across SFM's full network of 9–11 facilities — Bond's largest single multi-facility implementation.</div>
+      <div class="nstatus">In Progress</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Reporting &amp; Analytics · Bond Sports · Q2 2026 Board Update &nbsp;·&nbsp; David Jung, Director of Data &amp; Analytics
+</div>
+
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Credits & Debits — Bond Sports</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F0F2F5;
+    color: #1A1A1A;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A1A1A;
+  }
+  .topbar-logo svg { width: 22px; height: 22px; }
+  .topbar-sep { color: #CBD5E0; font-size: 16px; }
+  .topbar-title { font-size: 14px; font-weight: 600; color: #1A1A1A; }
+  .badge-published {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 500; color: #0F6E56;
+    background: #E1F5EE; border-radius: 4px; padding: 2px 8px;
+  }
+  .badge-published::before { content: '●'; font-size: 8px; }
+  .topbar-edit {
+    font-size: 12px; color: #4A4A4A; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    border: 1px solid #E2E8F0; border-radius: 4px; padding: 3px 8px;
+  }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .topbar-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #E2E8F0; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #4A4A4A; cursor: pointer;
+  }
+
+  /* ── Tab bar ── */
+  .tabbar {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 16px;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .tab {
+    font-size: 13px; font-weight: 600; color: #4A4A4A;
+    padding: 8px 16px 9px; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .tab.active { color: #0D4774; border-bottom-color: #0D4774; }
+  .tab-add {
+    font-size: 16px; color: #9AAABA; padding: 6px 10px; cursor: pointer;
+    margin-right: 4px; order: -1;
+  }
+
+  /* ── Main canvas ── */
+  .canvas {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 20px 40px;
+  }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .section-icon {
+    width: 52px; height: 52px; border-radius: 10px;
+    background: #EBF4FF; display: flex; align-items: center;
+    justify-content: center; font-size: 26px; flex-shrink: 0;
+  }
+  .section-header-text h1 {
+    font-size: 20px; font-weight: 600; color: #1A1A1A; line-height: 1.2;
+  }
+  .section-header-text p {
+    font-size: 13px; color: #4A4A4A; margin-top: 2px;
+  }
+
+  /* ── KPI tiles ── */
+  .kpi-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .kpi-card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .kpi-value {
+    font-size: 26px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .kpi-value.blue  { color: #0D4774; }
+  .kpi-value.green { color: #0F6E56; }
+  .kpi-value.red   { color: #A32D2D; }
+  .kpi-label {
+    font-size: 12px; font-weight: 500; color: #4A4A4A;
+    margin-top: 5px;
+  }
+  .kpi-sub {
+    font-size: 11px; color: #9AAABA; margin-top: 2px;
+  }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .btn-filters {
+    background: #0F1923; color: #fff;
+    border: none; border-radius: 20px;
+    padding: 6px 14px; font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .filter-pill {
+    border: 1px solid #CBD5E0; border-radius: 6px;
+    padding: 5px 10px; font-size: 12px; color: #4A4A4A;
+    background: #fff; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  }
+  .filter-pill .label { color: #9AAABA; font-size: 11px; }
+  .filter-pill .value { color: #1A1A1A; font-weight: 500; }
+  .filter-pill-arrow { font-size: 10px; color: #9AAABA; }
+  .btn-reset {
+    background: #C53030; color: #fff;
+    border: none; border-radius: 6px;
+    padding: 5px 12px; font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: 'Inter', sans-serif; margin-left: 2px;
+  }
+  .spacer { flex: 1; }
+  .btn-export {
+    background: #0D4774; color: #fff;
+    border: none; border-radius: 6px;
+    padding: 6px 16px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-export:hover { background: #0a3860; }
+
+  /* ── Table card ── */
+  .table-card {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .table-card-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .table-card-title { font-size: 14px; font-weight: 600; color: #1A1A1A; }
+  .table-card-sub   { font-size: 12px; color: #4A4A4A; margin-left: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #F8F9FA; }
+  th {
+    font-size: 12px; font-weight: 600; color: #1A1A1A;
+    padding: 8px 12px; text-align: left;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap; user-select: none;
+  }
+  th.right { text-align: right; }
+  th .sort { color: #9AAABA; margin-left: 2px; font-size: 10px; }
+
+  td {
+    font-size: 13px; color: #1A1A1A;
+    padding: 8px 12px; border-bottom: 1px solid #F1F5F9;
+    font-variant-numeric: tabular-nums;
+  }
+  td.right { text-align: right; }
+  td.mono  { font-family: 'Courier New', monospace; font-size: 12px; color: #4A4A4A; }
+  td.acct-name { font-weight: 500; }
+  td.type-tag {
+    display: inline-flex;
+  }
+
+  tbody tr:nth-child(odd)  { background: #fff; }
+  tbody tr:nth-child(even) { background: #FAFAFA; }
+  tbody tr:hover { background: #EBF4FF; }
+
+  /* Total row */
+  tr.total-row td {
+    font-weight: 700; font-size: 13px;
+    border-top: 2px solid #E2E8F0;
+    background: #F8F9FA !important;
+    padding-top: 10px; padding-bottom: 10px;
+  }
+  tr.total-row td.blue  { color: #0D4774; }
+  tr.total-row td.green { color: #0F6E56; }
+
+  /* Balance indicator */
+  .balance-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 600;
+    padding: 3px 10px; border-radius: 4px;
+  }
+  .balance-badge.balanced {
+    background: #E1F5EE; color: #0F6E56;
+  }
+  .balance-badge.unbalanced {
+    background: #FCEBEB; color: #A32D2D;
+  }
+
+  /* Type badge */
+  .type-badge {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 7px; border-radius: 4px;
+    display: inline-block;
+  }
+  .type-asset    { background: #E6F1FB; color: #185FA5; }
+  .type-liability{ background: #FAEEDA; color: #854F0B; }
+  .type-revenue  { background: #EAF3DE; color: #3B6D11; }
+  .type-expense  { background: #F1F5F9; color: #4A4A4A; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#2D9CDB"/>
+      <path d="M8 8h8M8 12h6M8 16h4" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    Σ
+  </div>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-title">Credits &amp; Debits</span>
+  <span class="badge-published">Published</span>
+  <button class="topbar-edit">✏️ Edit</button>
+  <div class="topbar-right">
+    <div class="topbar-icon">↗</div>
+    <div class="topbar-icon">⚙</div>
+    <div class="topbar-icon" style="background:#0D4774;color:#fff;font-size:11px;font-weight:700;">DJ</div>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tabbar">
+  <span class="tab-add">+</span>
+  <div class="tab active">Journal Entry Summary</div>
+  <div class="tab">Transaction Detail</div>
+  <div class="tab">Account Mapping</div>
+</div>
+
+<!-- Canvas -->
+<div class="canvas">
+
+  <!-- Section header -->
+  <div class="section-header">
+    <div class="section-icon">📒</div>
+    <div class="section-header-text">
+      <h1>Credits &amp; Debits — Journal Entry Summary</h1>
+      <p>Summarizes all financial activity by GL account for the selected period. Export to CSV for upload to your ERP.</p>
+    </div>
+  </div>
+
+  <!-- KPI tiles -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-value blue">$75,715.00</div>
+      <div class="kpi-label">Total Debits</div>
+      <div class="kpi-sub">April 1 – April 28, 2026</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value blue">$75,715.00</div>
+      <div class="kpi-label">Total Credits</div>
+      <div class="kpi-sub">April 1 – April 28, 2026</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value green">$0.00</div>
+      <div class="kpi-label">Variance</div>
+      <div class="kpi-sub">Must equal $0 to be valid</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value blue">7</div>
+      <div class="kpi-label">Accounts</div>
+      <div class="kpi-sub">Across 428 transactions</div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <button class="btn-filters">Filters ▾</button>
+    <div class="filter-pill">
+      <span class="label">Date Range</span>
+      <span class="value">Apr 1, 2026 – Apr 28, 2026</span>
+      <span class="filter-pill-arrow">▾</span>
+    </div>
+    <div class="filter-pill">
+      <span class="label">Account Type</span>
+      <span class="value">All Types</span>
+      <span class="filter-pill-arrow">▾</span>
+    </div>
+    <div class="filter-pill">
+      <span class="label">Organization</span>
+      <span class="value">Select values</span>
+      <span class="filter-pill-arrow">▾</span>
+    </div>
+    <button class="btn-reset">Reset</button>
+    <div class="spacer"></div>
+    <button class="btn-export">⬇ Export Journal Entry CSV</button>
+  </div>
+
+  <!-- Balance status row -->
+  <div style="margin-bottom:12px; display:flex; align-items:center; gap:10px;">
+    <span class="balance-badge balanced">✓ Balanced — Debits equal Credits</span>
+    <span style="font-size:12px;color:#4A4A4A;">Last refreshed: Today, 6:02 AM</span>
+  </div>
+
+  <!-- GL Summary Table -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">GL Account Summary</span>
+      <span class="table-card-sub">April 2026 · All Organizations</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Account #<span class="sort">▾</span></th>
+          <th>Account Name<span class="sort">▾</span></th>
+          <th>Type</th>
+          <th class="right">Debit<span class="sort">▾</span></th>
+          <th class="right">Credit<span class="sort">▾</span></th>
+          <th class="right">Net (Dr − Cr)<span class="sort">▾</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">1000</td>
+          <td class="acct-name">Cash &amp; Cash Equivalents</td>
+          <td><span class="type-badge type-asset">Asset</span></td>
+          <td class="right">$52,840.00</td>
+          <td class="right">—</td>
+          <td class="right" style="color:#0D4774;font-weight:600;">$52,840.00</td>
+        </tr>
+        <tr>
+          <td class="mono">1200</td>
+          <td class="acct-name">Accounts Receivable</td>
+          <td><span class="type-badge type-asset">Asset</span></td>
+          <td class="right">$4,125.00</td>
+          <td class="right">—</td>
+          <td class="right" style="color:#0D4774;font-weight:600;">$4,125.00</td>
+        </tr>
+        <tr>
+          <td class="mono">2100</td>
+          <td class="acct-name">Sales Tax Payable</td>
+          <td><span class="type-badge type-liability">Liability</span></td>
+          <td class="right">—</td>
+          <td class="right">$3,890.00</td>
+          <td class="right" style="color:#854F0B;font-weight:600;">($3,890.00)</td>
+        </tr>
+        <tr>
+          <td class="mono">2200</td>
+          <td class="acct-name">Processing Fees Payable</td>
+          <td><span class="type-badge type-liability">Liability</span></td>
+          <td class="right">—</td>
+          <td class="right">$1,580.00</td>
+          <td class="right" style="color:#854F0B;font-weight:600;">($1,580.00)</td>
+        </tr>
+        <tr>
+          <td class="mono">2500</td>
+          <td class="acct-name">Deferred Revenue</td>
+          <td><span class="type-badge type-liability">Liability</span></td>
+          <td class="right">$18,750.00</td>
+          <td class="right">$24,600.00</td>
+          <td class="right" style="color:#854F0B;font-weight:600;">($5,850.00)</td>
+        </tr>
+        <tr>
+          <td class="mono">4000</td>
+          <td class="acct-name">Program Revenue</td>
+          <td><span class="type-badge type-revenue">Revenue</span></td>
+          <td class="right">—</td>
+          <td class="right">$42,500.00</td>
+          <td class="right" style="color:#854F0B;font-weight:600;">($42,500.00)</td>
+        </tr>
+        <tr>
+          <td class="mono">4100</td>
+          <td class="acct-name">Registration Fees</td>
+          <td><span class="type-badge type-revenue">Revenue</span></td>
+          <td class="right">—</td>
+          <td class="right">$3,145.00</td>
+          <td class="right" style="color:#854F0B;font-weight:600;">($3,145.00)</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3" style="font-weight:700;">Total</td>
+          <td class="right blue">$75,715.00</td>
+          <td class="right blue">$75,715.00</td>
+          <td class="right green">$0.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer note -->
+  <div style="font-size:12px;color:#9AAABA;margin-top:8px;">
+    * Net shown as Dr − Cr. Asset/expense accounts carry debit-normal balances; liability/revenue accounts carry credit-normal balances. Export CSV is formatted for direct import into QuickBooks, NetSuite, and Xero.
+  </div>
+
+</div><!-- /canvas -->
+
+</body>
+</html>

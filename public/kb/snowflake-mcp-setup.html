@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snowflake MCP Setup — Bond Sports</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bond-navy:    #0F1923;
+      --bond-gold:    #C9A84C;
+      --bo-primary:   #0D4774;
+      --bo-text:      #1A1A1A;
+      --bo-text-body: #4A4A4A;
+      --surface:      #FFFFFF;
+      --surface-sub:  #F8F9FA;
+      --border:       #E2E8F0;
+      --border-sub:   #F1F5F9;
+      --red:          #A32D2D;
+      --red-bg:       #FCEBEB;
+      --green:        #3B6D11;
+      --green-bg:     #EAF3DE;
+      --amber:        #854F0B;
+      --amber-bg:     #FAEEDA;
+    }
+
+    body {
+      font-family: Inter, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--bo-text);
+      background: var(--surface-sub);
+      padding: 40px 20px 80px;
+    }
+
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--bond-navy);
+      border-radius: 12px;
+      padding: 36px 40px;
+      margin-bottom: 32px;
+    }
+    header .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bond-gold);
+      margin-bottom: 8px;
+    }
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 32px;
+    }
+    header p {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      max-width: 560px;
+    }
+
+    /* ── Section ── */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid var(--border-sub);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bo-primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-badge.admin { background: var(--bond-gold); color: var(--bond-navy); }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--bo-primary);
+    }
+    .section-subtitle {
+      font-size: 12px;
+      color: var(--bo-text-body);
+      margin-top: 2px;
+    }
+    .section-body {
+      padding: 24px 28px;
+    }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 20px; }
+    .step-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--bo-text-body);
+      margin-bottom: 6px;
+    }
+    .step-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--bo-text);
+      margin-bottom: 8px;
+    }
+    .step-body {
+      color: var(--bo-text-body);
+      font-size: 13px;
+      line-height: 20px;
+    }
+    .step-body p + p { margin-top: 8px; }
+
+    /* ── Code blocks ── */
+    .code-block {
+      background: #0F1923;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      position: relative;
+    }
+    .code-block pre {
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 20px;
+      color: #d1d5db;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .code-block .comment { color: #6b7280; }
+    .code-block .key     { color: var(--bond-gold); }
+    .code-block .val     { color: #86efac; }
+    .code-block .cmd     { color: #93c5fd; }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.6);
+      border-radius: 5px;
+      padding: 3px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition-property: background, color;
+      transition-duration: 0.15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .copy-btn.copied { color: #86efac; }
+
+    /* ── OS Tabs ── */
+    .os-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .os-tab {
+      padding: 5px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--surface-sub);
+      color: var(--bo-text-body);
+      transition-property: background, border-color, color;
+      transition-duration: 0.12s;
+    }
+    .os-tab.active {
+      background: var(--bo-primary);
+      border-color: var(--bo-primary);
+      color: #fff;
+    }
+    .os-content { display: none; }
+    .os-content.active { display: block; }
+
+    /* ── Callouts ── */
+    .callout {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 13px;
+      line-height: 19px;
+      display: flex;
+      gap: 10px;
+    }
+    .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .callout.warn  { background: var(--amber-bg); color: var(--amber); }
+    .callout.stop  { background: var(--red-bg);   color: var(--red);   }
+    .callout.ok    { background: var(--green-bg);  color: var(--green); }
+    .callout.info  { background: #E6F1FB; color: #185FA5; }
+
+    /* ── Table ── */
+    .cred-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .cred-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--bo-text-body);
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--border);
+    }
+    .cred-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border-sub);
+      font-size: 13px;
+    }
+    .cred-table td:first-child { color: var(--bo-text-body); }
+    .cred-table td:last-child  { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: var(--bo-primary); }
+    .cred-table tr:last-child td { border-bottom: none; }
+    .placeholder { color: var(--bo-text-body) !important; font-style: italic; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* ── SQL highlight ── */
+    .sql-kw  { color: #93c5fd; }
+    .sql-val { color: #86efac; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="eyebrow">Bond Sports · Analytics</div>
+    <h1>Snowflake MCP Setup Guide</h1>
+    <p>Connect Claude Code to Bond's Snowflake data warehouse. Read-only access — you can query any table, but cannot modify, insert, or delete anything.</p>
+  </header>
+
+  <!-- Overview -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">What this gives you</div>
+    </div>
+    <div class="section-body">
+      <p class="step-body">Once set up, you can ask Claude natural-language questions about Bond data and it will write and run the SQL for you — directly against Snowflake. Examples:</p>
+      <div class="code-block" style="margin-top:14px;">
+        <pre><span class="comment">"How many active organizations do we have?"
+"Show me the last 10 Salesforce opportunities and their ARR"
+"What does the actions table look like for org 1234?"</span></pre>
+      </div>
+      <p class="step-body" style="margin-top:12px;">All queries run as your Snowflake user with a read-only role. You <strong>cannot</strong> modify data — the config blocks every write operation at the tool level.</p>
+    </div>
+  </div>
+
+  <!-- ADMIN SECTION -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge admin">★</div>
+      <div>
+        <div class="section-title">Admin setup — Brett does this once per new user</div>
+        <div class="section-subtitle">Run this SQL in Snowflake as ACCOUNTADMIN or SYSADMIN. Skip if the user already exists.</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="step-label">Step 1 — Create the shared read-only role (one time, ever)</div>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><span class="comment">-- Run once to create the shared read-only role</span>
+<span class="sql-kw">USE ROLE</span> SYSADMIN;
+
+<span class="sql-kw">CREATE ROLE IF NOT EXISTS</span> BOND_READONLY;
+
+<span class="comment">-- Grant warehouse access</span>
+<span class="sql-kw">GRANT USAGE ON WAREHOUSE</span> DEV <span class="sql-kw">TO ROLE</span> BOND_READONLY;
+
+<span class="comment">-- Grant read access to the ANALYTICS database</span>
+<span class="sql-kw">GRANT USAGE ON DATABASE</span> ANALYTICS <span class="sql-kw">TO ROLE</span> BOND_READONLY;
+<span class="sql-kw">GRANT USAGE ON ALL SCHEMAS IN DATABASE</span> ANALYTICS <span class="sql-kw">TO ROLE</span> BOND_READONLY;
+<span class="sql-kw">GRANT SELECT ON ALL TABLES IN DATABASE</span> ANALYTICS <span class="sql-kw">TO ROLE</span> BOND_READONLY;
+<span class="sql-kw">GRANT SELECT ON ALL VIEWS IN DATABASE</span> ANALYTICS <span class="sql-kw">TO ROLE</span> BOND_READONLY;
+<span class="sql-kw">GRANT SELECT ON FUTURE TABLES IN DATABASE</span> ANALYTICS <span class="sql-kw">TO ROLE</span> BOND_READONLY;
+<span class="sql-kw">GRANT SELECT ON FUTURE VIEWS IN DATABASE</span> ANALYTICS <span class="sql-kw">TO ROLE</span> BOND_READONLY;</pre>
+      </div>
+
+      <div class="step-label" style="margin-top:20px;">Step 2 — Create the user and assign the role</div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <span>No password — authentication is SSH key-based. The user will generate their key pair and send you their public key before you run Step 3.</span>
+      </div>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><span class="comment">-- Replace FIRSTNAME_LASTNAME with the actual username (ALL_CAPS)</span>
+<span class="sql-kw">CREATE USER IF NOT EXISTS</span> FIRSTNAME_LASTNAME
+  DEFAULT_ROLE = BOND_READONLY
+  DEFAULT_WAREHOUSE = DEV
+  DEFAULT_NAMESPACE = ANALYTICS;
+
+<span class="sql-kw">GRANT ROLE</span> BOND_READONLY <span class="sql-kw">TO USER</span> FIRSTNAME_LASTNAME;</pre>
+      </div>
+
+      <div class="step-label" style="margin-top:20px;">Step 3 — Register the user's public key</div>
+      <p class="step-body">Wait for the user to complete Step 2 below and send you their public key. Then run this — paste their key content (the base64 block, no header/footer lines) as the value:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><span class="comment">-- Paste the user's public key content between the quotes
+-- It's the lines between -----BEGIN PUBLIC KEY----- and -----END PUBLIC KEY-----
+-- Remove those header/footer lines; keep only the base64 content</span>
+<span class="sql-kw">ALTER USER</span> FIRSTNAME_LASTNAME <span class="sql-kw">SET</span>
+  RSA_PUBLIC_KEY=<span class="sql-val">'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...'</span>;</pre>
+      </div>
+      <div class="callout ok">
+        <span class="callout-icon">✓</span>
+        <span>Once registered, the user's private key authenticates them — no password is ever stored or shared. To revoke access, run <code>ALTER USER FIRSTNAME_LASTNAME UNSET RSA_PUBLIC_KEY;</code></span>
+      </div>
+
+      <div class="step-label" style="margin-top:20px;">Step 4 — Share account details with the user</div>
+      <p class="step-body">Send the user the following via Slack DM:</p>
+      <table class="cred-table" style="margin-top:10px;">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Account</td><td>VYQVYJM-BOND_WAREHOUSE</td></tr>
+        <tr><td>Username</td><td class="placeholder">FIRSTNAME_LASTNAME (all caps)</td></tr>
+        <tr><td>Role</td><td>BOND_READONLY</td></tr>
+        <tr><td>Warehouse</td><td>DEV</td></tr>
+        <tr><td>Database</td><td>ANALYTICS</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- USER SECTION -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">1</div>
+      <div>
+        <div class="section-title">Install uv — the Python runner</div>
+        <div class="section-subtitle">The Snowflake MCP server runs via Python. uv manages this automatically — you don't need Python installed.</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="os-tabs">
+        <button class="os-tab active" onclick="switchOS(this,'win1')">Windows</button>
+        <button class="os-tab" onclick="switchOS(this,'mac1')">Mac</button>
+      </div>
+
+      <div id="win1" class="os-content active">
+        <p class="step-body">Open <strong>PowerShell</strong> (search "PowerShell" in Start) and run:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</span></pre>
+        </div>
+        <p class="step-body">Close and reopen PowerShell when it finishes. Verify with:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">uvx --version</span></pre>
+        </div>
+        <div class="callout ok"><span class="callout-icon">✓</span><span>You should see a version number like <code>uvx 0.11.x</code>. If you see "command not found", close and reopen PowerShell.</span></div>
+      </div>
+
+      <div id="mac1" class="os-content">
+        <p class="step-body">Open <strong>Terminal</strong> and run:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">curl -LsSf https://astral.sh/uv/install.sh | sh</span></pre>
+        </div>
+        <p class="step-body">Close and reopen Terminal when it finishes. Verify with:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">uvx --version</span></pre>
+        </div>
+        <div class="callout ok"><span class="callout-icon">✓</span><span>You should see a version number like <code>uvx 0.11.x</code>.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">2</div>
+      <div>
+        <div class="section-title">Generate your SSH key pair</div>
+        <div class="section-subtitle">Creates a private key (stays on your machine forever) and a public key (you send to David once).</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="os-tabs">
+        <button class="os-tab active" onclick="switchOS(this,'win2')">Windows (Git Bash)</button>
+        <button class="os-tab" onclick="switchOS(this,'mac2')">Mac</button>
+      </div>
+
+      <div id="win2" class="os-content active">
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <span>Use <strong>Git Bash</strong>, not PowerShell — it includes the <code>openssl</code> tool needed here. Search "Git Bash" in Start menu. If you don't have Git installed, download it from <code>git-scm.com</code>.</span>
+        </div>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="comment"># Create the .snowflake directory and generate your key pair</span>
+<span class="cmd">mkdir -p ~/.snowflake
+openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out ~/.snowflake/snowflake_key.p8 -nocrypt
+openssl rsa -in ~/.snowflake/snowflake_key.p8 -pubout -out ~/.snowflake/snowflake_key.pub</span>
+
+<span class="comment"># Print the public key content to copy and send to David</span>
+<span class="cmd">grep -v "BEGIN PUBLIC KEY\|END PUBLIC KEY" ~/.snowflake/snowflake_key.pub | tr -d '\n' && echo</span></pre>
+        </div>
+      </div>
+
+      <div id="mac2" class="os-content">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="comment"># Create the .snowflake directory and generate your key pair</span>
+<span class="cmd">mkdir -p ~/.snowflake
+openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out ~/.snowflake/snowflake_key.p8 -nocrypt
+openssl rsa -in ~/.snowflake/snowflake_key.p8 -pubout -out ~/.snowflake/snowflake_key.pub
+chmod 600 ~/.snowflake/snowflake_key.p8</span>
+
+<span class="comment"># Print the public key content to copy and send to David</span>
+<span class="cmd">grep -v "BEGIN PUBLIC KEY\|END PUBLIC KEY" ~/.snowflake/snowflake_key.pub | tr -d '\n' && echo</span></pre>
+        </div>
+      </div>
+
+      <p class="step-body" style="margin-top:4px;">The last command prints a single long base64 string. <strong>Copy that string and send it to Brett via Slack DM</strong> — he'll register it in Snowflake (Admin Step 3). Your private key never leaves your machine.</p>
+      <div class="callout stop">
+        <span class="callout-icon">✕</span>
+        <span>Never share <code>snowflake_key.p8</code> — that's your private key. Only share the output of the last command above (the public key content).</span>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <span>Wait for David to confirm he's registered your key before continuing to the next step.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">3</div>
+      <div>
+        <div class="section-title">Create your Snowflake connection file</div>
+        <div class="section-subtitle">Points to your private key. No password stored anywhere.</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="os-tabs">
+        <button class="os-tab active" onclick="switchOS(this,'win3a')">Windows</button>
+        <button class="os-tab" onclick="switchOS(this,'mac3a')">Mac</button>
+      </div>
+
+      <div id="win3a" class="os-content active">
+        <p class="step-body">In PowerShell:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.snowflake"</span>
+<span class="cmd">notepad "$env:USERPROFILE\.snowflake\connections.toml"</span></pre>
+        </div>
+        <p class="step-body" style="margin-top:10px;">Paste the following — replace <code>YOUR_USERNAME</code> and the key path with your actual Windows username:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="key">[default]</span>
+<span class="key">account</span>          = <span class="val">"VYQVYJM-BOND_WAREHOUSE"</span>
+<span class="key">user</span>             = <span class="val">"YOUR_USERNAME"</span>                            <span class="comment"># e.g. LOGAN_CASHMAN</span>
+<span class="key">private_key_path</span> = <span class="val">"C:/Users/YourWindowsName/.snowflake/snowflake_key.p8"</span>
+<span class="key">role</span>             = <span class="val">"BOND_READONLY"</span>
+<span class="key">warehouse</span>        = <span class="val">"DEV"</span>
+<span class="key">database</span>         = <span class="val">"ANALYTICS"</span></pre>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <span>To find your Windows username, run <code>echo $env:USERNAME</code> in PowerShell. Use forward slashes in the path, not backslashes.</span>
+        </div>
+      </div>
+
+      <div id="mac3a" class="os-content">
+        <p class="step-body">In Terminal:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">open -e ~/.snowflake/connections.toml</span></pre>
+        </div>
+        <p class="step-body" style="margin-top:10px;">Paste the following — replace <code>YOUR_USERNAME</code>:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="key">[default]</span>
+<span class="key">account</span>          = <span class="val">"VYQVYJM-BOND_WAREHOUSE"</span>
+<span class="key">user</span>             = <span class="val">"YOUR_USERNAME"</span>          <span class="comment"># e.g. LOGAN_CASHMAN</span>
+<span class="key">private_key_path</span> = <span class="val">"~/.snowflake/snowflake_key.p8"</span>
+<span class="key">role</span>             = <span class="val">"BOND_READONLY"</span>
+<span class="key">warehouse</span>        = <span class="val">"DEV"</span>
+<span class="key">database</span>         = <span class="val">"ANALYTICS"</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">4</div>
+      <div>
+        <div class="section-title">Create the MCP permissions config</div>
+        <div class="section-subtitle">Locks Claude to read-only SQL — SELECT, SHOW, DESCRIBE, USE only. All writes blocked.</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="os-tabs">
+        <button class="os-tab active" onclick="switchOS(this,'win3')">Windows</button>
+        <button class="os-tab" onclick="switchOS(this,'mac3')">Mac</button>
+      </div>
+
+      <div id="win3" class="os-content active">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude"</span>
+<span class="cmd">notepad "$env:USERPROFILE\.claude\snowflake-config.yaml"</span></pre>
+        </div>
+      </div>
+
+      <div id="mac3" class="os-content">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">mkdir -p ~/.claude && open -e ~/.claude/snowflake-config.yaml</span></pre>
+        </div>
+      </div>
+
+      <p class="step-body" style="margin-top:10px;">Paste this content exactly — do not change it:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><span class="key">other_services</span>:
+  <span class="key">object_manager</span>: <span class="val">true</span>
+  <span class="key">query_manager</span>:  <span class="val">true</span>
+  <span class="key">semantic_manager</span>: <span class="val">false</span>
+
+<span class="key">sql_statement_permissions</span>:
+  - <span class="key">Select</span>:        <span class="val">True</span>
+  - <span class="key">Describe</span>:      <span class="val">True</span>
+  - <span class="key">Use</span>:           <span class="val">True</span>
+  - <span class="key">Show</span>:          <span class="val">True</span>
+  - <span class="key">Alter</span>:         <span class="val">False</span>
+  - <span class="key">Command</span>:       <span class="val">False</span>
+  - <span class="key">Create</span>:        <span class="val">False</span>
+  - <span class="key">Delete</span>:        <span class="val">False</span>
+  - <span class="key">Drop</span>:          <span class="val">False</span>
+  - <span class="key">Insert</span>:        <span class="val">False</span>
+  - <span class="key">Merge</span>:         <span class="val">False</span>
+  - <span class="key">Update</span>:        <span class="val">False</span>
+  - <span class="key">TruncateTable</span>: <span class="val">False</span>
+  - <span class="key">Copy</span>:          <span class="val">False</span>
+  - <span class="key">Transaction</span>:   <span class="val">False</span>
+  - <span class="key">Unknown</span>:       <span class="val">False</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">5</div>
+      <div>
+        <div class="section-title">Register the MCP server with Claude Code</div>
+        <div class="section-subtitle">Run once. This adds Snowflake to your Claude Code config permanently.</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="os-tabs">
+        <button class="os-tab active" onclick="switchOS(this,'win4')">Windows</button>
+        <button class="os-tab" onclick="switchOS(this,'mac4')">Mac</button>
+      </div>
+
+      <div id="win4" class="os-content active">
+        <p class="step-body">In PowerShell:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">claude mcp add snowflake `
+  --transport stdio `
+  -- "$env:USERPROFILE\.local\bin\uvx.exe" snowflake-labs-mcp `
+  --service-config-file "$env:USERPROFILE\.claude\snowflake-config.yaml" `
+  --connection-name default</span></pre>
+        </div>
+      </div>
+
+      <div id="mac4" class="os-content">
+        <p class="step-body">In Terminal:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><span class="cmd">claude mcp add snowflake \
+  --transport stdio \
+  -- uvx snowflake-labs-mcp \
+  --service-config-file ~/.claude/snowflake-config.yaml \
+  --connection-name default</span></pre>
+        </div>
+      </div>
+
+      <div class="callout info" style="margin-top:8px;">
+        <span class="callout-icon">ℹ</span>
+        <span>This writes to your user-level Claude config (<code>~/.claude.json</code>). It applies to every Claude Code session, not just this project.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">6</div>
+      <div>
+        <div class="section-title">Verify the connection</div>
+        <div class="section-subtitle">Start a new Claude Code session and confirm Snowflake is live.</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="steps">
+        <div>
+          <div class="step-label">Check the MCP list</div>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><span class="cmd">claude mcp list</span></pre>
+          </div>
+          <div class="callout ok"><span class="callout-icon">✓</span><span>You should see <code>snowflake: ... ✓ Connected</code></span></div>
+          <div class="callout warn"><span class="callout-icon">⚠</span><span>If you see <code>✗ Failed</code>, double-check your <code>connections.toml</code> — most likely the <code>private_key_path</code> is wrong or the file doesn't exist at that path.</span></div>
+        </div>
+
+        <div>
+          <div class="step-label">Run a test query in Claude Code</div>
+          <p class="step-body">In a Claude Code chat, type:</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><span class="comment">How many columns are in the USERS table in Snowflake?</span></pre>
+          </div>
+          <div class="callout ok"><span class="callout-icon">✓</span><span>Claude should query the <code>ANALYTICS.INFORMATION_SCHEMA.COLUMNS</code> metadata and return <strong>14 columns</strong>. This is a schema check — the number is stable and won't drift.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Troubleshooting</div>
+    </div>
+    <div class="section-body">
+      <table class="cred-table">
+        <tr><th>Symptom</th><th>Fix</th></tr>
+        <tr>
+          <td><code>✗ Failed to connect</code> in mcp list</td>
+          <td>Check <code>connections.toml</code> — confirm <code>private_key_path</code> points to where you generated the key (e.g. <code>C:/Users/YourName/.snowflake/snowflake_key.p8</code>). Username must be all caps (e.g. <code>LOGAN_CASHMAN</code>).</td>
+        </tr>
+        <tr>
+          <td><code>uvx: command not found</code></td>
+          <td>Close and reopen your terminal after installing uv. On Mac, you may need to run <code>source ~/.bashrc</code> or <code>source ~/.zshrc</code></td>
+        </tr>
+        <tr>
+          <td>Permission denied when running a query</td>
+          <td>Your Snowflake user may not have the BOND_READONLY role yet — ask Brett to run Step 2 of the admin setup</td>
+        </tr>
+        <tr>
+          <td>Claude says it can't write data</td>
+          <td>This is correct. The config blocks all writes. If you need write access for a specific task, ask Brett.</td>
+        </tr>
+        <tr>
+          <td>MCP registered but shows <code>! Needs authentication</code></td>
+          <td>This is a different error — your <code>connections.toml</code> file may not exist or may be in the wrong location. Verify the path exactly.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- What's available -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">What you can access</div>
+    </div>
+    <div class="section-body">
+      <table class="cred-table">
+        <tr><th>Database</th><th>What's in it</th></tr>
+        <tr><td>ANALYTICS</td><td>All production dbt models — actions ledger, organizations, AR aging, income statement, and all marts. <strong>Primary database for analysis.</strong></td></tr>
+        <tr><td>SALESFORCE</td><td>Live Salesforce CRM data — accounts, contacts, opportunities, demos</td></tr>
+        <tr><td>STRIPE_SHARE</td><td>Stripe payment data share</td></tr>
+        <tr><td>RAW</td><td>Raw upstream data from the Bond platform before dbt transforms</td></tr>
+        <tr><td>DEV</td><td>Developer sandbox — Brett's in-progress work. May be incomplete.</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+function switchOS(btn, contentId) {
+  const section = btn.closest('.section-body');
+  section.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+  section.querySelectorAll('.os-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(contentId).classList.add('active');
+}
+
+function copyCode(btn) {
+  const pre = btn.nextElementSibling;
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>

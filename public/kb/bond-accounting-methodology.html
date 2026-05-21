@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Understanding Bond's Accounting Methodologies</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bond-navy:        #0F1923;
+      --bond-gold:        #C9A84C;
+      --bo-primary:       #0D4774;
+      --bo-text:          #1A1A1A;
+      --bo-text-body:     #4A4A4A;
+      --bo-text-disabled: #B0B0B0;
+      --bond-surface:     #FFFFFF;
+      --bond-surface-subtle: #F8F9FA;
+      --bond-border:      #E2E8F0;
+
+      /* Methodology colors — match Bond's Sigma report */
+      --cash-dark:        #7B3320;
+      --cash-mid:         #A8492D;
+      --cash-light:       #F5EAE7;
+      --cash-border:      #E8C5BA;
+
+      --invoice-dark:     #5C3A9E;
+      --invoice-mid:      #7B52C8;
+      --invoice-light:    #EEE8FA;
+      --invoice-border:   #C9B8F0;
+
+      --payment-dark:     #1E6B3A;
+      --payment-mid:      #2D9155;
+      --payment-light:    #E3F4EA;
+      --payment-border:   #A8DFB8;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--bo-text-body);
+      background: #F4F6F8;
+      padding: 48px 24px 80px;
+    }
+
+    .page {
+      max-width: 840px;
+      margin: 0 auto;
+      background: var(--bond-surface);
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .page-header {
+      background: var(--bond-navy);
+      padding: 36px 48px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .page-header .logo-mark {
+      width: 36px;
+      height: 36px;
+      background: var(--bond-gold);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--bond-navy);
+      flex-shrink: 0;
+      letter-spacing: -0.5px;
+    }
+    .page-header .brand {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .page-header .divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.15);
+      margin: 0 2px;
+    }
+    .page-header .section {
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Content */
+    .page-content { padding: 48px 48px 56px; }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 32px;
+      color: var(--bo-primary);
+      margin-bottom: 10px;
+      text-wrap: balance;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: var(--bo-text-body);
+      line-height: 22px;
+      margin-bottom: 40px;
+      max-width: 640px;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 26px;
+      color: var(--bo-text);
+      margin-top: 44px;
+      margin-bottom: 14px;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 22px;
+      color: var(--bo-primary);
+      margin-top: 32px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 22px;
+      color: var(--bo-text-body);
+      margin-bottom: 14px;
+      text-wrap: pretty;
+    }
+    p:last-child { margin-bottom: 0; }
+
+    /* Callout */
+    .callout {
+      background: #EBF4FF;
+      border-left: 3px solid var(--bo-primary);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 20px 0;
+      font-size: 13px;
+      line-height: 20px;
+      color: var(--bo-text-body);
+    }
+    .callout strong { color: var(--bo-primary); }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 18px 0 8px;
+      border-radius: 8px;
+      border: 1px solid var(--bond-border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    thead th {
+      background: var(--bond-surface-subtle);
+      color: var(--bo-text);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--bond-border);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--bond-border);
+      transition-property: background-color;
+      transition-duration: 120ms;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FAFBFC; }
+    tbody td {
+      padding: 10px 14px;
+      color: var(--bo-text-body);
+      vertical-align: middle;
+    }
+    td.event-col { color: var(--bo-text); font-weight: 500; }
+    td.na { color: var(--bo-text-disabled); font-style: italic; }
+    td.money { font-weight: 500; color: var(--bo-text); }
+    td.money-zero { color: var(--bo-text-disabled); }
+
+    /* Method-tinted table highlights */
+    td.hl-cash-pos    { color: var(--cash-dark);    font-weight: 600; background: var(--cash-light); }
+    td.hl-invoice-pos { color: var(--invoice-dark); font-weight: 600; background: var(--invoice-light); }
+    td.hl-invoice-ar  { color: var(--invoice-dark); font-weight: 600; background: var(--invoice-light); }
+    td.hl-payment-pos { color: var(--payment-dark); font-weight: 600; background: var(--payment-light); }
+    td.hl-payment-ar  { color: var(--payment-dark); font-weight: 600; background: var(--payment-light); }
+
+    /* Methodology section headers */
+    .method-block { margin-top: 36px; }
+
+    .method-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .method-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-cash    { background: var(--cash-light);    color: var(--cash-dark);    border: 1px solid var(--cash-border); }
+    .badge-invoice { background: var(--invoice-light); color: var(--invoice-dark); border: 1px solid var(--invoice-border); }
+    .badge-payment { background: var(--payment-light); color: var(--payment-dark); border: 1px solid var(--payment-border); }
+
+    .method-header h3 { margin: 0; }
+
+    /* Method-colored h3 */
+    h3.cash-title    { color: var(--cash-dark); }
+    h3.invoice-title { color: var(--invoice-dark); }
+    h3.payment-title { color: var(--payment-dark); }
+
+    .table-caption {
+      font-size: 12px;
+      color: var(--bo-text-disabled);
+      margin-top: 6px;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    /* Scenario box */
+    .scenario-box {
+      background: var(--bond-surface-subtle);
+      border: 1px solid var(--bond-border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 20px 0 28px;
+      font-size: 13px;
+      line-height: 20px;
+      color: var(--bo-text-body);
+    }
+    .scenario-box strong { color: var(--bo-text); }
+    .scenario-box ul { margin-top: 8px; padding-left: 18px; }
+    .scenario-box li { margin-bottom: 4px; }
+
+    /* Key diff / Freeze box */
+    .info-box {
+      background: var(--bond-surface-subtle);
+      border: 1px solid var(--bond-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 28px 0;
+    }
+    .info-box h3 { margin-top: 0; color: var(--bo-text); }
+    .info-box ul { padding-left: 20px; margin-top: 10px; }
+    .info-box li {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 22px;
+      color: var(--bo-text-body);
+    }
+    .info-box li strong { color: var(--bo-text); }
+
+    /* Freeze block */
+    .freeze-box {
+      background: #FFFBEC;
+      border: 1px solid #F0D97A;
+      border-left: 3px solid var(--bond-gold);
+      border-radius: 0 8px 8px 0;
+      padding: 20px 24px;
+      margin: 28px 0;
+    }
+    .freeze-box h3 { margin-top: 0; color: #7A5C00; }
+    .freeze-box p  { color: #5A4500; }
+    .freeze-box ul { padding-left: 20px; margin: 10px 0; }
+    .freeze-box li {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 22px;
+      color: #5A4500;
+    }
+    .freeze-box li strong { color: #3A3000; }
+
+    /* Glance table */
+    .glance-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+      border-radius: 8px;
+      border: 1px solid var(--bond-border);
+    }
+
+    /* FAQ */
+    .faq-list { margin-top: 16px; }
+    .faq-item {
+      border-bottom: 1px solid var(--bond-border);
+      padding: 18px 0;
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { font-size: 14px; font-weight: 600; color: var(--bo-text); margin-bottom: 6px; }
+    .faq-a { font-size: 14px; line-height: 22px; color: var(--bo-text-body); }
+
+    /* Footer */
+    .page-footer {
+      border-top: 1px solid var(--bond-border);
+      padding: 22px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .footer-text { font-size: 13px; color: var(--bo-text-disabled); }
+    .footer-link { font-size: 13px; font-weight: 500; color: var(--bo-primary); text-decoration: none; }
+    .footer-link:hover { text-decoration: underline; }
+
+    hr { border: none; border-top: 1px solid var(--bond-border); margin: 40px 0; }
+
+    ul.body-list { padding-left: 20px; margin-bottom: 14px; }
+    ul.body-list li {
+      font-size: 14px;
+      line-height: 22px;
+      color: var(--bo-text-body);
+      margin-bottom: 6px;
+    }
+    ul.body-list li strong { color: var(--bo-text); }
+
+    /* Refresh chips */
+    .refresh-row {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .refresh-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--bond-border);
+      background: var(--bond-surface-subtle);
+    }
+    .refresh-chip .chip-label { font-size: 13px; font-weight: 600; color: var(--bo-text); }
+    .refresh-chip .chip-freq  { font-size: 12px; color: var(--bo-text-body); }
+    .chip-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-accrual { background: var(--invoice-mid); }
+    .dot-cash    { background: var(--cash-mid); }
+    .dot-ops     { background: #185FA5; }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="logo-mark">B</div>
+      <div class="brand">Bond Sports</div>
+      <div class="divider"></div>
+      <div class="section">Help Center</div>
+    </div>
+
+    <!-- Content -->
+    <div class="page-content">
+
+      <h1>Understanding Bond's Accounting Methodologies</h1>
+      <p class="subtitle">Bond supports three accounting methodologies to match how your organization recognizes revenue. Your methodology is set during onboarding and governs how your financial reports — the All Financial Activity (AFA), Accounting Summaries, and AR Aging reports — behave.</p>
+
+      <!-- At a glance -->
+      <h2>The Three Methodologies at a Glance</h2>
+      <div class="glance-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th><span style="color:var(--cash-dark)">Cash</span></th>
+              <th><span style="color:var(--invoice-dark)">Accrual – Defer on Invoice Creation</span></th>
+              <th><span style="color:var(--payment-dark)">Accrual – Defer on Payment</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="event-col">When is revenue recognized?</td>
+              <td>When payment is received</td>
+              <td>When the service is delivered (event occurs)</td>
+              <td>When the service is delivered (event occurs)</td>
+            </tr>
+            <tr>
+              <td class="event-col">When is revenue deferred?</td>
+              <td>Never</td>
+              <td>When an invoice is created</td>
+              <td>When cash is collected</td>
+            </tr>
+            <tr>
+              <td class="event-col">AR reflects…</td>
+              <td>Unpaid invoice balances</td>
+              <td>Unpaid invoice balances</td>
+              <td>Services delivered but not yet paid</td>
+            </tr>
+            <tr>
+              <td class="event-col">Complexity</td>
+              <td>Simple</td>
+              <td>Moderate</td>
+              <td>Most complex</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- How recognition works -->
+      <h2>How Bond Recognizes Revenue</h2>
+      <p>Regardless of your methodology, Bond determines <strong>when a service has been delivered</strong> the same way: based on your event schedule. For a rental with 3 monthly events, each event that occurs releases 1/3 of the invoice value as recognized revenue. For a league, revenue accrues evenly across the season. For a camp, add-ons accrue alongside the associated session events.</p>
+
+      <div class="callout">
+        <strong>Important:</strong> Accurate revenue recognition depends on your products being tagged with the correct GL codes, and your event schedules having accurate start and end dates. Incorrect dates — for example, a league with the same start and end date — will cause mis-accruals that require a manual journal entry to correct.
+      </div>
+
+      <!-- Side by side example -->
+      <h2>A Side-by-Side Example</h2>
+
+      <div class="scenario-box">
+        <strong>Scenario:</strong> A customer is invoiced $300 for a 3-event rental ($100/event).
+        <ul>
+          <li><strong>Jan 1</strong> — Invoice created</li>
+          <li><strong>Jan 31</strong> — Event 1 occurs (no payment yet)</li>
+          <li><strong>Feb 15</strong> — Full payment of $300 received</li>
+          <li><strong>Feb 28</strong> — Event 2 occurs</li>
+          <li><strong>Mar 31</strong> — Event 3 occurs</li>
+        </ul>
+      </div>
+
+      <!-- Cash -->
+      <div class="method-block">
+        <div class="method-header">
+          <span class="method-badge badge-cash">Method 1</span>
+          <h3 class="cash-title">Cash</h3>
+        </div>
+        <p>Revenue is recorded only when payment is received. No accruals, no deferrals.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>What Happened</th>
+                <th>Cash Collected</th>
+                <th>Recognized</th>
+                <th>Deferred</th>
+                <th>AR</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jan 1</td>
+                <td class="event-col">Invoice created</td>
+                <td class="money-zero">$0</td>
+                <td class="na">N/A</td>
+                <td class="na">N/A</td>
+                <td class="money">$300</td>
+              </tr>
+              <tr>
+                <td>Jan 31</td>
+                <td class="event-col">Event 1 occurs</td>
+                <td class="money-zero">$0</td>
+                <td class="na">N/A</td>
+                <td class="na">N/A</td>
+                <td class="money">$300</td>
+              </tr>
+              <tr>
+                <td>Feb 15</td>
+                <td class="event-col">Payment received</td>
+                <td class="hl-cash-pos">$300</td>
+                <td class="na">N/A</td>
+                <td class="na">N/A</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Feb 28</td>
+                <td class="event-col">Event 2 occurs</td>
+                <td class="money">$300</td>
+                <td class="na">N/A</td>
+                <td class="na">N/A</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Mar 31</td>
+                <td class="event-col">Event 3 occurs</td>
+                <td class="money">$300</td>
+                <td class="na">N/A</td>
+                <td class="na">N/A</td>
+                <td class="money-zero">$0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-caption">Revenue and deferred are not tracked — cash in equals revenue recognized.</p>
+      </div>
+
+      <!-- Accrual defer on invoice -->
+      <div class="method-block">
+        <div class="method-header">
+          <span class="method-badge badge-invoice">Method 2</span>
+          <h3 class="invoice-title">Accrual – Defer on Invoice Creation</h3>
+        </div>
+        <p>The full invoice amount is deferred the moment the invoice is created. Revenue is recognized as each event occurs. Payment does not affect the deferred or recognized amounts — only service delivery does.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>What Happened</th>
+                <th>Cash Collected</th>
+                <th>Recognized</th>
+                <th>Deferred</th>
+                <th>AR</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jan 1</td>
+                <td class="event-col">Invoice created</td>
+                <td class="money-zero">$0</td>
+                <td class="money-zero">$0</td>
+                <td class="hl-invoice-pos">$300</td>
+                <td class="money">$300</td>
+              </tr>
+              <tr>
+                <td>Jan 31</td>
+                <td class="event-col">Event 1 occurs</td>
+                <td class="money-zero">$0</td>
+                <td class="money">$100</td>
+                <td class="hl-invoice-pos">$200</td>
+                <td class="money">$300</td>
+              </tr>
+              <tr>
+                <td>Feb 15</td>
+                <td class="event-col">Payment received</td>
+                <td class="money">$300</td>
+                <td class="money">$100</td>
+                <td class="hl-invoice-pos">$200</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Feb 28</td>
+                <td class="event-col">Event 2 occurs</td>
+                <td class="money">$300</td>
+                <td class="money">$200</td>
+                <td class="hl-invoice-pos">$100</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Mar 31</td>
+                <td class="event-col">Event 3 occurs</td>
+                <td class="money">$300</td>
+                <td class="money">$300</td>
+                <td class="money-zero">$0</td>
+                <td class="money-zero">$0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-caption">Notice that payment on Feb 15 clears AR and updates Cash Collected, but Recognized and Deferred don't move — those only change when an event occurs.</p>
+      </div>
+
+      <!-- Accrual defer on payment -->
+      <div class="method-block">
+        <div class="method-header">
+          <span class="method-badge badge-payment">Method 3</span>
+          <h3 class="payment-title">Accrual – Defer on Payment</h3>
+        </div>
+        <p>Revenue is recognized when services are delivered, and deferred revenue only accumulates when cash has actually been collected. This creates a fully balanced picture at all times:</p>
+        <ul class="body-list">
+          <li><strong>AR</strong> = services delivered but not yet paid</li>
+          <li><strong>Deferred</strong> = cash collected for services not yet delivered</li>
+        </ul>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>What Happened</th>
+                <th>Cash Collected</th>
+                <th>Recognized</th>
+                <th>Deferred</th>
+                <th>AR</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jan 1</td>
+                <td class="event-col">Invoice created</td>
+                <td class="money-zero">$0</td>
+                <td class="money-zero">$0</td>
+                <td class="money-zero">$0</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Jan 31</td>
+                <td class="event-col">Event 1 occurs</td>
+                <td class="money-zero">$0</td>
+                <td class="money">$100</td>
+                <td class="money-zero">$0</td>
+                <td class="hl-payment-ar">$100</td>
+              </tr>
+              <tr>
+                <td>Feb 15</td>
+                <td class="event-col">Payment received</td>
+                <td class="money">$300</td>
+                <td class="money">$100</td>
+                <td class="hl-payment-pos">$200</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Feb 28</td>
+                <td class="event-col">Event 2 occurs</td>
+                <td class="money">$300</td>
+                <td class="money">$200</td>
+                <td class="hl-payment-pos">$100</td>
+                <td class="money-zero">$0</td>
+              </tr>
+              <tr>
+                <td>Mar 31</td>
+                <td class="event-col">Event 3 occurs</td>
+                <td class="money">$300</td>
+                <td class="money">$300</td>
+                <td class="money-zero">$0</td>
+                <td class="money-zero">$0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-caption">Jan 31: one event delivered, no payment — AR is $100 (earned, not collected). Feb 15: payment arrives, AR clears, $200 moves to Deferred (collected for 2 undelivered events). Each subsequent event converts $100 of Deferred into Recognized.</p>
+      </div>
+
+      <hr />
+
+      <!-- Key difference -->
+      <div class="info-box">
+        <h3>The Key Difference Between the Two Accrual Methods</h3>
+        <p>Both methods recognize revenue as events occur. The difference is <strong>what triggers the deferred balance:</strong></p>
+        <ul>
+          <li><strong style="color:var(--invoice-dark)">Defer on Invoice Creation:</strong> The invoice itself creates the deferred entry. Payment is tracked separately as cash flow. You can have Deferred and AR simultaneously on the same invoice — as seen Jan 31–Feb 14 in the example above.</li>
+          <li><strong style="color:var(--payment-dark)">Defer on Payment:</strong> Only collected cash creates deferred revenue. Before payment, undelivered services show as nothing. Delivered but unpaid services show as AR. There is never a state where both AR and Deferred exist on the same invoice at the same time.</li>
+        </ul>
+      </div>
+
+      <!-- The Daily Freeze -->
+      <h2>The Daily Freeze</h2>
+      <p>"The freeze" refers to Bond's layered system of rules that govern how <strong>every operational change</strong> — a rescheduled slot, a cancellation, a refund, a payment — translates into a financial entry, and critically, <em>when</em> that entry is dated.</p>
+
+      <p>When something changes in your facility, Bond doesn't simply wait for the next scheduled event to update the books. Instead, it captures the state change in a history record the moment it happens, evaluates it through a financial lens, and determines whether a correcting entry is needed — dated to when the change occurred, not when the original service was scheduled.</p>
+
+      <div class="freeze-box">
+        <h3>Example: a rescheduled rental slot</h3>
+        <p>A rental slot worth $100 is originally scheduled for March 15. The customer moves it to April 10. Bond creates a record in SlotHistory at the moment of the reschedule. The system then evaluates: has this slot already occurred? Has it been paid for? What was its prior financial state? Based on those answers, it may create a correcting entry — reversing any recognition that had already been recorded — dated to the day the change was made. When April 10 arrives and the slot occurs, the recognition entry fires again at that point. Two entries, two dates, net result is correct.</p>
+      </div>
+
+      <p>The mechanism driving all of this is the <strong>Action Name</strong> column in Bond's Actions ledger. Every financial event is tagged with an action name — <em>slot_occur, void, payment, invoice_create, revert_void</em>, and others — that tells the system what kind of entry to create, in which direction, and when. Not every operational change triggers a financial entry; the freeze rules determine which ones do and how, based on context: what happened before, what the current invoice status is, whether services have already been delivered.</p>
+
+      <p>This complexity is what makes Bond's accrual reporting accurate across reschedules, cancellations, and late payments — without requiring your team to make manual journal entries for every operational change.</p>
+
+      <p><strong>Reports refresh on a daily cycle.</strong> The freeze rules operate at the moment each change happens in the platform, but those results surface in your Sigma reports on the following schedule:</p>
+
+      <div class="refresh-row">
+        <div class="refresh-chip">
+          <div class="chip-dot dot-accrual"></div>
+          <div>
+            <div class="chip-label">Accrual reports</div>
+            <div class="chip-freq">Refresh every 24 hours</div>
+          </div>
+        </div>
+        <div class="refresh-chip">
+          <div class="chip-dot dot-ops"></div>
+          <div>
+            <div class="chip-label">Cash &amp; operational reports</div>
+            <div class="chip-freq">Refresh approximately every 3 hours</div>
+          </div>
+        </div>
+      </div>
+
+
+      <hr />
+
+      <!-- Reports -->
+      <h2>How This Affects Your Reports</h2>
+
+      <h3>Accounting Summaries</h3>
+      <p>The Accounting Summaries tab is your primary tool for month-end close. Select your methodology in the filter at the top of the report. The top table provides your monthly <strong>Recognized Revenue</strong> and <strong>Change in Deferred</strong> totals for journal entries.</p>
+      <div class="callout">
+        When opening the report, if the filter shows "None", click it and re-select your methodology to ensure data loads correctly.
+      </div>
+
+      <h3>All Financial Activity (AFA)</h3>
+      <p>A full transaction ledger — every invoice, payment, and recognition event in one place. Use the <strong>"On or Before"</strong> date filter to tie out to a specific close date. Including today's date in a mid-period pull will include unposted activity and will look different the next morning after the freeze runs.</p>
+
+      <h3>AR Aging</h3>
+      <ul class="body-list">
+        <li><strong>Cash and Accrual – Defer on Invoice Creation:</strong> AR reflects unpaid invoice balances.</li>
+        <li><strong>Accrual – Defer on Payment:</strong> AR reflects services delivered but not yet paid. Because this requires payment allocation at the event/slot level, small discrepancies may appear in AFA payment amounts while that work is ongoing; all other tabs on the Invoices and Payments sheet reflect correct payment totals.</li>
+      </ul>
+
+      <hr />
+
+      <!-- FAQ -->
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">Can I switch methodologies?</div>
+          <div class="faq-a">Methodology changes require coordination with Bond. Historical data is affected. Contact your Customer Success Manager before making any changes.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Which methodology should I use?</div>
+          <div class="faq-a">If your organization reports to a board or has a formal audit and needs AR and deferred balances tied directly to service delivery, use <strong>Accrual – Defer on Payment</strong>. If you invoice upfront and want automated accrual without payment-level complexity, use <strong>Accrual – Defer on Invoice Creation</strong>. If your finance process is entirely cash-based, use <strong>Cash</strong>.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Why does my deferred balance look different between the two accrual methods?</div>
+          <div class="faq-a">By design. Defer on Invoice Creation defers the full invoice price at creation. Defer on Payment only defers cash you've already collected. The worked example above shows exactly how and when they diverge.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Why did my report change between yesterday and today?</div>
+          <div class="faq-a">Accrual reports refresh once daily. If a new event occurred, a payment was received, a slot was rescheduled, or a correction was applied after your last pull, the freeze rules will have generated the appropriate financial entries and they'll appear in today's run. To lock a view to a specific date, use the "On or Before" filter in AFA.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What is "GL code dependency"?</div>
+          <div class="faq-a">Every product in Bond must be tagged with a GL code for revenue to appear in the correct line of your Accounting Summaries. GL code corrections are retroactive — fixing a missing tag will update historical data automatically after the next nightly freeze.</div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+
+    <!-- Footer -->
+    <div class="page-footer">
+      <span class="footer-text">Questions about your methodology or help reconciling a report?</span>
+      <a class="footer-link" href="mailto:customersuccess@bondsports.co">customersuccess@bondsports.co</a>
+    </div>
+
+  </div><!-- /page -->
+</body>
+</html>
