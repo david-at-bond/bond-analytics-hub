@@ -4,6 +4,9 @@ import { triageSnapshot, TREND_STYLES } from '../content/analytics/triage.js'
 
 const tabular = { fontVariantNumeric: 'tabular-nums' }
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const shortMonth = (yyyyMm) => MONTH_NAMES[parseInt(yyyyMm.split('-')[1], 10) - 1]
+
 function StatTile({ label, value, sub }) {
   return (
     <div style={{
@@ -49,7 +52,7 @@ function VolumeBars() {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 18, height: 180 }}>
         {byMonth.map(m => {
           const pct = m.total / max
-          const monthLabel = new Date(m.month + '-01').toLocaleDateString('en-US', { month: 'short' })
+          const monthLabel = shortMonth(m.month)
           const isLive = m.month >= '2026-03'
           return (
             <div key={m.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>

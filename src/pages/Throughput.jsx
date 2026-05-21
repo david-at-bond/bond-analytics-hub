@@ -4,6 +4,9 @@ import { throughputSnapshot } from '../content/analytics/throughput.js'
 
 const tabular = { fontVariantNumeric: 'tabular-nums' }
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const shortMonth = (yyyyMm) => MONTH_NAMES[parseInt(yyyyMm.split('-')[1], 10) - 1]
+
 function StatTile({ label, value, sub }) {
   return (
     <div style={{
@@ -36,7 +39,7 @@ function MonthlyBars() {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 18, height: 220 }}>
         {byMonth.map(m => {
           const pct = m.resolved / max
-          const label = new Date(m.month + '-01').toLocaleDateString('en-US', { month: 'short' })
+          const label = shortMonth(m.month)
           return (
             <div key={m.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BOND.text, ...tabular }}>
