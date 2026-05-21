@@ -54,7 +54,7 @@ function VolumeBars() {
           return (
             <div key={m.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BOND.text, ...tabular }}>
-                {m.total}{m.partial && <span style={{ color: BOND.textMuted, fontWeight: 400 }}>*</span>}
+                {m.total}
               </div>
               <div style={{
                 width: '100%', maxWidth: 60,
@@ -67,9 +67,6 @@ function VolumeBars() {
             </div>
           )
         })}
-      </div>
-      <div style={{ marginTop: 12, fontSize: 11, color: BOND.textMuted, textAlign: 'right' }}>
-        * May is partial — through {triageSnapshot.asOf}
       </div>
     </div>
   )
@@ -94,7 +91,7 @@ function PerOrgTable() {
             <th style={{ textAlign: 'left',  padding: '10px 22px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Org</th>
             <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mar</th>
             <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Apr</th>
-            <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>May*</th>
+            <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>May</th>
             <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total</th>
             <th style={{ textAlign: 'left',  padding: '10px 22px', fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Trend</th>
           </tr>
@@ -142,8 +139,7 @@ export default function TriageAnalytics() {
           <div style={{ fontSize: 12, fontWeight: 700, color: BOND.text, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
             Reading the data
           </div>
-          Reporting Triage went live on {triageSnapshot.liveSince}. Apr is the first full operating month and May is partial through 5/21.
-          Apr → May annualized pace is roughly flat (~77 vs 67) — issue volume is steady, not declining, but resolution rate has held at {Math.round(t.resolutionRate * 100)}%.
+          Reporting Triage went live on {triageSnapshot.liveSince}. April was the first full operating month; pace into May is roughly flat — issue volume is steady, not declining, and resolution rate has held at {Math.round(t.resolutionRate * 100)}%.
           The interesting movement is per-customer: <strong>blackbearsportsgroup</strong> trended up in May, <strong>biggbycoffeeicecube</strong> spiked in April and is now silent (fix-and-stay-fixed), and longer-tail customers like <strong>sensplex</strong> and <strong>icevault</strong> are cooling.
         </div>
       </div>

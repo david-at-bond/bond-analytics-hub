@@ -40,7 +40,7 @@ function MonthlyBars() {
           return (
             <div key={m.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BOND.text, ...tabular }}>
-                {m.resolved}{m.partial && <span style={{ color: BOND.textMuted, fontWeight: 400 }}>*</span>}
+                {m.resolved}
               </div>
               <div style={{
                 width: '100%', maxWidth: 80,
@@ -53,9 +53,6 @@ function MonthlyBars() {
             </div>
           )
         })}
-      </div>
-      <div style={{ marginTop: 12, fontSize: 11, color: BOND.textMuted, textAlign: 'right' }}>
-        * May is partial — through {throughputSnapshot.asOf}. Annualized pace: ~{throughputSnapshot.mayAnnualized}.
       </div>
     </div>
   )
