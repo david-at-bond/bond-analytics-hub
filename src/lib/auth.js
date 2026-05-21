@@ -56,7 +56,7 @@ export function useAuth() {
     window.history.replaceState({}, '', '/')
     ;(async () => {
       try {
-        const res = await fetch('/.netlify/functions/auth-exchange', {
+        const res = await fetch('/api/auth-exchange', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, redirectUri: window.location.origin }),

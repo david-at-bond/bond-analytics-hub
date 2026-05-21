@@ -46,7 +46,7 @@ function FileBrowser({ onSelect, currentPath }) {
     const raw = localStorage.getItem(USER_KEY)
     const u = raw ? JSON.parse(raw) : null
     const token = btoa(JSON.stringify(u))
-    fetch(`/.netlify/functions/private-content?path=`, {
+    fetch(`/api/private-content?path=`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
@@ -92,7 +92,7 @@ function MeContent({ auth }) {
     const raw = localStorage.getItem(USER_KEY)
     const u = raw ? JSON.parse(raw) : null
     const token = btoa(JSON.stringify(u))
-    fetch(`/.netlify/functions/private-content?path=${encodeURIComponent(selectedPath)}`, {
+    fetch(`/api/private-content?path=${encodeURIComponent(selectedPath)}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
