@@ -1,9 +1,9 @@
 // Reporting Triage analytics — snapshot of Supabase issues table.
-// Refreshed: 2026-05-21. To re-snapshot, re-run the queries in
+// Refreshed: 2026-05-22. To re-snapshot, re-run the queries in
 // memory/PROGRESS notes against project xeyvmjewywxphpirskln.
 
 export const triageSnapshot = {
-  asOf: '2026-05-21',
+  asOf: '2026-05-22',
   liveSince: '2026-04-06',
 
   totals: {
