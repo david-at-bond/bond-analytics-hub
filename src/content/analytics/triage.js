@@ -35,17 +35,39 @@ export const triageSnapshot = {
       sampleNote: 'Sampled from Gmail thread metadata; small-n because the bulk of triage threads live in the customersuccess@ shared inbox.',
     },
     resolution: {
-      n: 106,
-      medianDays: 3,
-      meanDays: 3.7,
-      maxDays: 16,
-      distribution: [
-        { bucket: '0–1 day',   count: 39 },
-        { bucket: '2–3 days',  count: 22 },
-        { bucket: '4–7 days',  count: 31 },
-        { bucket: '8–14 days', count: 13 },
-        { bucket: '15+ days',  count: 1  },
-      ],
+      // Post-launch — all 106 resolved issues, from Supabase resolvedDate.
+      postLaunch: {
+        n: 106,
+        medianDays: 3,
+        meanDays: 3.7,
+        maxDays: 16,
+        // Normalized to same buckets as pre-launch for direct comparison.
+        distribution: [
+          { bucket: 'Same day', count: 39 },
+          { bucket: '1–3 days', count: 22 },
+          { bucket: '4–7 days', count: 31 },
+          { bucket: '8–30 days', count: 14 }, // 13 (8-14d) + 1 (15+, was max 16)
+          { bucket: '30+ days', count: 0  },
+        ],
+      },
+      // Pre-launch — sample of 16 Jan-Mar threads, "last Bond reply" proxy.
+      // Methodology: customer t0 → last @bondsports.co reply timestamp from
+      // the thread. Imperfect (same-day acks count as resolution) but
+      // catches the long tail honestly.
+      preLaunch: {
+        n: 16,
+        medianDays: 2.2,
+        meanDays: 14.7,
+        maxDays: 86,
+        sampleNote: 'Gmail thread sample, n=16 of 40 sampled (others were Bond-initiated or unreachable). "Resolution" proxied by last Bond reply timestamp.',
+        distribution: [
+          { bucket: 'Same day', count: 7 },
+          { bucket: '1–3 days', count: 3 },
+          { bucket: '4–7 days', count: 2 },
+          { bucket: '8–30 days', count: 1 },
+          { bucket: '30+ days', count: 3 }, // 46d, 58d, 86d
+        ],
+      },
       byMonth: [
         { month: '2026-04', median: 3, max: 12, n: 58 },
         { month: '2026-05', median: 3, max: 16, n: 48 },

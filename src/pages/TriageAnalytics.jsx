@@ -24,12 +24,13 @@ function StatTile({ label, value, sub }) {
 
 function ResponseSpeed() {
   const { firstReply: fr, resolution: r } = triageSnapshot.responseSpeed
-  const distMax = Math.max(...r.distribution.map(d => d.count))
-  const distTotal = r.distribution.reduce((sum, d) => sum + d.count, 0)
-  const withinWeek = r.distribution
-    .filter(d => d.bucket === '0–1 day' || d.bucket === '2–3 days' || d.bucket === '4–7 days')
-    .reduce((sum, d) => sum + d.count, 0)
-  const pctWithinWeek = Math.round((withinWeek / distTotal) * 100)
+  const post = r.postLaunch
+  const pre  = r.preLaunch
+
+  const postTotal = post.distribution.reduce((s, d) => s + d.count, 0)
+  const preTotal  = pre.distribution.reduce((s, d) => s + d.count, 0)
+  const postLongTailPct = Math.round((post.distribution.find(d => d.bucket === '30+ days').count / postTotal) * 100)
+  const preLongTailPct  = Math.round((pre.distribution.find(d => d.bucket === '30+ days').count / preTotal) * 100)
 
   return (
     <div style={{
@@ -38,7 +39,7 @@ function ResponseSpeed() {
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 18 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: BOND.text }}>Response speed</span>
-        <span style={{ fontSize: 11, color: BOND.textMuted }}>Two metrics: first reply (acknowledgement) and resolution (issue closed).</span>
+        <span style={{ fontSize: 11, color: BOND.textMuted }}>First reply, time to resolution, and what actually changed.</span>
       </div>
 
       {/* Two side-by-side metric cards */}
@@ -68,51 +69,78 @@ function ResponseSpeed() {
           borderRadius: 10, padding: '22px 26px',
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-            Time to resolution
+            Median time to resolution
           </div>
           <div style={{ fontSize: 36, fontWeight: 700, color: BOND.primary, lineHeight: 1, ...tabular }}>
-            {r.medianDays} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
+            {post.medianDays} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
           </div>
           <div style={{ fontSize: 12, color: BOND.textBody, marginTop: 8, fontWeight: 500 }}>
-            median · {pctWithinWeek}% closed within a week
+            post-launch · n={post.n}
           </div>
           <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 4 }}>
-            longest {r.maxDays}d (outlier) · mean {r.meanDays}d · n={r.n}
+            pre-launch median was {pre.medianDays}d — comparable
           </div>
         </div>
       </div>
 
-      {/* Resolution distribution */}
-      <div style={{ marginBottom: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: BOND.text }}>Distribution of resolution times</span>
-          <span style={{ fontSize: 11, color: BOND.textMuted, ...tabular }}>{pctWithinWeek}% within a week</span>
+      {/* Long-tail comparison — the real story */}
+      <div style={{
+        background: BOND.surfaceSubtle, border: `1px solid ${BOND.border}`,
+        borderRadius: 10, padding: '22px 26px', marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: BOND.text, marginBottom: 4 }}>
+          What actually changed: the long tail
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {r.distribution.map(d => {
-            const pct = d.count / distMax
-            const sharePct = Math.round((d.count / distTotal) * 100)
+        <div style={{ fontSize: 12, color: BOND.textMuted, marginBottom: 18, lineHeight: 1.5 }}>
+          Median resolution was already fast pre-launch. The real outcome of the triage app is that issues no longer fall through the cracks for 30+ days.
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          {[
+            { label: 'Pre-launch (Jan–Mar)',  data: pre,  n: pre.n,  longTail: preLongTailPct,  max: pre.maxDays,  noteColor: '#854F0B' },
+            { label: 'Post-launch (Apr–May)', data: post, n: post.n, longTail: postLongTailPct, max: post.maxDays, noteColor: '#0F6E56' },
+          ].map(side => {
+            const total = side.data.distribution.reduce((s, d) => s + d.count, 0)
+            const max = Math.max(...side.data.distribution.map(d => d.count))
             return (
-              <div key={d.bucket} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 56px', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 12, color: BOND.textBody, fontWeight: 500 }}>{d.bucket}</span>
-                <div style={{
-                  height: 14, borderRadius: 4,
-                  background: `linear-gradient(to right, ${BOND.gold} 0%, ${BOND.gold} ${pct * 100}%, ${BOND.surfaceSubtle} ${pct * 100}%)`,
-                  border: `1px solid ${BOND.border}`,
-                }} />
-                <span style={{ fontSize: 12, color: BOND.textMuted, textAlign: 'right', ...tabular }}>
-                  {d.count} · {sharePct}%
-                </span>
+              <div key={side.label}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: BOND.text }}>{side.label}</span>
+                  <span style={{ fontSize: 11, color: BOND.textMuted, ...tabular }}>n={side.n} · max {side.max}d</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {side.data.distribution.map(d => {
+                    const pct = max > 0 ? d.count / max : 0
+                    const sharePct = total > 0 ? Math.round((d.count / total) * 100) : 0
+                    const isLongTail = d.bucket === '30+ days'
+                    return (
+                      <div key={d.bucket} style={{ display: 'grid', gridTemplateColumns: '78px 1fr 50px', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 11, color: isLongTail ? side.noteColor : BOND.textBody, fontWeight: isLongTail ? 700 : 500 }}>{d.bucket}</span>
+                        <div style={{
+                          height: 12, borderRadius: 3,
+                          background: `linear-gradient(to right, ${isLongTail ? side.noteColor : BOND.gold} 0%, ${isLongTail ? side.noteColor : BOND.gold} ${pct * 100}%, ${BOND.surface} ${pct * 100}%)`,
+                          border: `1px solid ${BOND.border}`,
+                        }} />
+                        <span style={{ fontSize: 11, color: BOND.textMuted, textAlign: 'right', ...tabular }}>
+                          {d.count} · {sharePct}%
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ fontSize: 11, color: side.noteColor, marginTop: 10, fontWeight: 600, textAlign: 'center' }}>
+                  {side.longTail}% of issues took 30+ days
+                </div>
               </div>
             )
           })}
         </div>
       </div>
 
-      <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${BOND.border}`, fontSize: 11, color: BOND.textMuted, lineHeight: 1.5 }}>
-        Bond CS was already fast to first reply — the triage app didn't change that. What changed is systematic <strong>resolution</strong>:
-        a 3-day median time from customer email to issue closed, with {pctWithinWeek}% closed within a week and zero issues lost in the inbox.
-        First-reply numbers sampled from {fr.n} Gmail threads; resolution numbers cover all {r.n} post-launch resolved issues.
+      <div style={{ paddingTop: 4, fontSize: 11, color: BOND.textMuted, lineHeight: 1.5 }}>
+        Bond CS was already fast to first reply (~{fr.medianHours}h median, unchanged). Median time-to-resolution was also already reasonable — about {pre.medianDays} days pre-launch vs {post.medianDays} days post. The difference is the <strong>distribution shape</strong>: pre-launch, roughly {preLongTailPct}% of customer issues dragged on for 30+ days (max {pre.maxDays}d in our sample). Post-launch, the long tail is gone — the longest issue in 106 took {post.maxDays} days.
+        <br /><br />
+        Pre-launch numbers from a Gmail sample (n={pre.n} of 40 reachable threads, "resolved" proxied by last Bond reply). Post-launch numbers cover all {post.n} resolved issues with real resolvedDate timestamps.
       </div>
     </div>
   )
@@ -224,7 +252,7 @@ export default function TriageAnalytics() {
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <StatTile label="Issues triaged"         value={t.triaged} sub="since Apr 6 launch" />
           <StatTile label="Median first reply"     value={`~${triageSnapshot.responseSpeed.firstReply.medianHours}h`} sub={`${triageSnapshot.responseSpeed.firstReply.sameDayPct}% same business day`} />
-          <StatTile label="Median time to resolve" value={`${triageSnapshot.responseSpeed.resolution.medianDays} days`} sub="87% within a week" />
+          <StatTile label="Median time to resolve" value={`${triageSnapshot.responseSpeed.resolution.postLaunch.medianDays} days`} sub={`longest ${triageSnapshot.responseSpeed.resolution.postLaunch.maxDays}d · no long tail`} />
           <StatTile label="Resolution rate"        value={`${Math.round(t.resolutionRate * 100)}%`} sub={`${t.resolved} of ${t.triaged}`} />
           <StatTile label="Customer orgs served"   value={t.uniqueOrgs} sub={`${t.uniqueReporters} distinct reporters`} />
         </div>
@@ -240,11 +268,8 @@ export default function TriageAnalytics() {
           <div style={{ fontSize: 12, fontWeight: 700, color: BOND.text, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
             Reading the data
           </div>
-          The goal of Reporting Triage was never to <em>start</em> responding to customer issues — Bond CS was already fast to acknowledge,
-          with a median first-reply of ~{triageSnapshot.responseSpeed.firstReply.medianHours} hours. The goal was systematic <strong>resolution</strong>:
-          driving every reported data issue to a closed status, with no issues lost in the inbox. Post-launch, median time-to-resolve is
-          {' '}{triageSnapshot.responseSpeed.resolution.medianDays} days, with 87% closed within a week. Volume is steady (Apr → May),
-          resolution rate is holding at {Math.round(t.resolutionRate * 100)}%, and the per-customer movement is interesting:{' '}
+          Bond CS was already fast on the easy cases — median first reply ~{triageSnapshot.responseSpeed.firstReply.medianHours}h, median resolution ~{triageSnapshot.responseSpeed.resolution.preLaunch.medianDays}d. What was broken was the long tail: pre-launch, roughly 1 in 5 issues dragged on for 30+ days (some pushing 80+). Post-launch, the longest issue in 106 took {triageSnapshot.responseSpeed.resolution.postLaunch.maxDays} days — the tail is gone.
+          Volume is steady (Apr → May), resolution rate is holding at {Math.round(t.resolutionRate * 100)}%, and the per-customer movement is interesting:{' '}
           <strong>blackbearsportsgroup</strong> trended up in May, <strong>biggbycoffeeicecube</strong> spiked in April and is now silent (fix-and-stay-fixed),
           and longer-tail customers like <strong>sensplex</strong> and <strong>icevault</strong> are cooling.
         </div>
