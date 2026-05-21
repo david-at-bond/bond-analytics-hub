@@ -17,25 +17,40 @@ export const triageSnapshot = {
     jiraLinked: 7,
   },
 
-  // Time from customer email → issue marked resolved.
-  // Pre-launch period reflects the backward Gmail sweep: issues sat unseen in
-  // the inbox before the triage funnel existed. Post-launch (Apr 6+) is the
-  // operating metric — what we ship against day-to-day now.
-  resolutionSpeed: {
-    postLaunch: { n: 106, median: 3,  mean: 3.7,  max: 16  },
-    preLaunch:  { n: 63,  median: 24, mean: 27.6, max: 122 },
-    // % buckets, post-launch only
-    distribution: [
-      { bucket: '0–1 day',   count: 39 },
-      { bucket: '2–3 days',  count: 22 },
-      { bucket: '4–7 days',  count: 31 },
-      { bucket: '8–14 days', count: 13 },
-      { bucket: '15+ days',  count: 1  },
-    ],
-    byMonth: [
-      { month: '2026-04', median: 3, max: 12, n: 58 },
-      { month: '2026-05', median: 3, max: 16, n: 48 },
-    ],
+  // Two response metrics:
+  // 1. Time-to-first-reply (TTFR): customer email → first Bond reply.
+  //    Sampled from Gmail thread metadata (n=12 reachable threads from a 40-
+  //    issue post-launch random sample). Wall-clock hours.
+  // 2. Time-to-resolution (TTR): customer email → issue marked resolved.
+  //    Computed from Supabase resolvedDate for all 106 post-launch resolved
+  //    issues. Days.
+  responseSpeed: {
+    firstReply: {
+      n: 12,
+      medianHours: 5.8,
+      meanHours: 9.1,
+      sameDayPct: 75,
+      next24hPct: 92,
+      maxHours: 43,        // spanning a weekend
+      sampleNote: 'Sampled from Gmail thread metadata; small-n because the bulk of triage threads live in the customersuccess@ shared inbox.',
+    },
+    resolution: {
+      n: 106,
+      medianDays: 3,
+      meanDays: 3.7,
+      maxDays: 16,
+      distribution: [
+        { bucket: '0–1 day',   count: 39 },
+        { bucket: '2–3 days',  count: 22 },
+        { bucket: '4–7 days',  count: 31 },
+        { bucket: '8–14 days', count: 13 },
+        { bucket: '15+ days',  count: 1  },
+      ],
+      byMonth: [
+        { month: '2026-04', median: 3, max: 12, n: 58 },
+        { month: '2026-05', median: 3, max: 16, n: 48 },
+      ],
+    },
   },
 
   // Monthly volume — Mar-onward is the post-launch period.

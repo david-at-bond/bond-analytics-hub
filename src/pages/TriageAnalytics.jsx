@@ -22,15 +22,14 @@ function StatTile({ label, value, sub }) {
   )
 }
 
-function ResolutionSpeed() {
-  const { resolutionSpeed: rs } = triageSnapshot
-  const distMax = Math.max(...rs.distribution.map(d => d.count))
-  const distTotal = rs.distribution.reduce((sum, d) => sum + d.count, 0)
-  const withinWeek = rs.distribution
+function ResponseSpeed() {
+  const { firstReply: fr, resolution: r } = triageSnapshot.responseSpeed
+  const distMax = Math.max(...r.distribution.map(d => d.count))
+  const distTotal = r.distribution.reduce((sum, d) => sum + d.count, 0)
+  const withinWeek = r.distribution
     .filter(d => d.bucket === '0–1 day' || d.bucket === '2–3 days' || d.bucket === '4–7 days')
     .reduce((sum, d) => sum + d.count, 0)
   const pctWithinWeek = Math.round((withinWeek / distTotal) * 100)
-  const speedup = Math.round(rs.preLaunch.median / rs.postLaunch.median)
 
   return (
     <div style={{
@@ -38,60 +37,59 @@ function ResolutionSpeed() {
       borderRadius: 10, padding: '22px 24px',
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 18 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: BOND.text }}>Resolution speed</span>
-        <span style={{ fontSize: 11, color: BOND.textMuted }}>Time from customer email → issue marked resolved.</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: BOND.text }}>Response speed</span>
+        <span style={{ fontSize: 11, color: BOND.textMuted }}>Two metrics: first reply (acknowledgement) and resolution (issue closed).</span>
       </div>
 
-      {/* Before/after hero */}
+      {/* Two side-by-side metric cards */}
       <div style={{
-        display: 'grid', gridTemplateColumns: '1fr auto 1fr',
-        alignItems: 'center', gap: 24,
-        background: BOND.surfaceSubtle, border: `1px solid ${BOND.border}`,
-        borderRadius: 10, padding: '22px 28px', marginBottom: 20,
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 22,
       }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
-            Before triage launch
+        <div style={{
+          background: BOND.surfaceSubtle, border: `1px solid ${BOND.border}`,
+          borderRadius: 10, padding: '22px 26px',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+            Time to first reply
           </div>
-          <div style={{ fontSize: 36, fontWeight: 700, color: BOND.textBody, lineHeight: 1, ...tabular }}>
-            {rs.preLaunch.median} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
+          <div style={{ fontSize: 36, fontWeight: 700, color: BOND.primary, lineHeight: 1, ...tabular }}>
+            ~{fr.medianHours} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>hrs</span>
           </div>
-          <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 6 }}>
-            median, backward sweep baseline (n={rs.preLaunch.n})
+          <div style={{ fontSize: 12, color: BOND.textBody, marginTop: 8, fontWeight: 500 }}>
+            median · {fr.sameDayPct}% same business day
+          </div>
+          <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 4 }}>
+            {fr.next24hPct}% within 24h · slowest {fr.maxHours}h (weekend) · Gmail sample n={fr.n}
           </div>
         </div>
 
         <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          color: BOND.gold, fontWeight: 700,
+          background: BOND.surfaceSubtle, border: `1px solid ${BOND.border}`,
+          borderRadius: 10, padding: '22px 26px',
         }}>
-          <div style={{ fontSize: 24, lineHeight: 1 }}>→</div>
-          <div style={{ fontSize: 12, marginTop: 4, color: BOND.primary, letterSpacing: '0.04em' }}>
-            {speedup}× faster
-          </div>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
-            After triage launch
+          <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+            Time to resolution
           </div>
           <div style={{ fontSize: 36, fontWeight: 700, color: BOND.primary, lineHeight: 1, ...tabular }}>
-            {rs.postLaunch.median} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
+            {r.medianDays} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
           </div>
-          <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 6 }}>
-            median post-launch (n={rs.postLaunch.n}, max {rs.postLaunch.max}d)
+          <div style={{ fontSize: 12, color: BOND.textBody, marginTop: 8, fontWeight: 500 }}>
+            median · {pctWithinWeek}% closed within a week
+          </div>
+          <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 4 }}>
+            longest {r.maxDays}d (outlier) · mean {r.meanDays}d · n={r.n}
           </div>
         </div>
       </div>
 
-      {/* Distribution */}
+      {/* Resolution distribution */}
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: BOND.text }}>Distribution of resolution times (post-launch)</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: BOND.text }}>Distribution of resolution times</span>
           <span style={{ fontSize: 11, color: BOND.textMuted, ...tabular }}>{pctWithinWeek}% within a week</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {rs.distribution.map(d => {
+          {r.distribution.map(d => {
             const pct = d.count / distMax
             const sharePct = Math.round((d.count / distTotal) * 100)
             return (
@@ -112,9 +110,9 @@ function ResolutionSpeed() {
       </div>
 
       <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${BOND.border}`, fontSize: 11, color: BOND.textMuted, lineHeight: 1.5 }}>
-        Pre-launch baseline reflects issues that sat unseen in the customer success inbox before the triage funnel existed —
-        their "resolved" date was set when they were first systematically reviewed. The post-launch number is the live
-        operating metric: median 3 days from customer email to issue closed, with {pctWithinWeek}% of all issues resolved within a week.
+        Bond CS was already fast to first reply — the triage app didn't change that. What changed is systematic <strong>resolution</strong>:
+        a 3-day median time from customer email to issue closed, with {pctWithinWeek}% closed within a week and zero issues lost in the inbox.
+        First-reply numbers sampled from {fr.n} Gmail threads; resolution numbers cover all {r.n} post-launch resolved issues.
       </div>
     </div>
   )
@@ -224,14 +222,14 @@ export default function TriageAnalytics() {
       />
       <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <StatTile label="Issues triaged"        value={t.triaged} sub="since Apr 6 launch" />
-          <StatTile label="Median time to resolve" value={`${triageSnapshot.resolutionSpeed.postLaunch.median} days`} sub={`down from ${triageSnapshot.resolutionSpeed.preLaunch.median}-day baseline`} />
-          <StatTile label="Resolution rate"       value={`${Math.round(t.resolutionRate * 100)}%`} sub={`${t.resolved} of ${t.triaged}`} />
-          <StatTile label="Customer orgs served"  value={t.uniqueOrgs} sub={`${t.uniqueReporters} distinct reporters`} />
-          <StatTile label="Currently open"        value={t.open + t.inProgress} sub={`${t.open} open · ${t.inProgress} in progress`} />
+          <StatTile label="Issues triaged"         value={t.triaged} sub="since Apr 6 launch" />
+          <StatTile label="Median first reply"     value={`~${triageSnapshot.responseSpeed.firstReply.medianHours}h`} sub={`${triageSnapshot.responseSpeed.firstReply.sameDayPct}% same business day`} />
+          <StatTile label="Median time to resolve" value={`${triageSnapshot.responseSpeed.resolution.medianDays} days`} sub="87% within a week" />
+          <StatTile label="Resolution rate"        value={`${Math.round(t.resolutionRate * 100)}%`} sub={`${t.resolved} of ${t.triaged}`} />
+          <StatTile label="Customer orgs served"   value={t.uniqueOrgs} sub={`${t.uniqueReporters} distinct reporters`} />
         </div>
 
-        <ResolutionSpeed />
+        <ResponseSpeed />
         <VolumeBars />
         <PerOrgTable />
 
@@ -242,10 +240,11 @@ export default function TriageAnalytics() {
           <div style={{ fontSize: 12, fontWeight: 700, color: BOND.text, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
             Reading the data
           </div>
-          The goal of Reporting Triage was never to <em>start</em> responding to customer issues — that was already happening.
-          The goal was to respond <strong>faster</strong>. Median time-to-resolve dropped from {triageSnapshot.resolutionSpeed.preLaunch.median} days
-          to {triageSnapshot.resolutionSpeed.postLaunch.median} since launch, with {Math.round(((triageSnapshot.resolutionSpeed.distribution[0].count + triageSnapshot.resolutionSpeed.distribution[1].count + triageSnapshot.resolutionSpeed.distribution[2].count) / triageSnapshot.resolutionSpeed.postLaunch.n) * 100)}% of all issues resolved within a week.
-          Volume is steady (Apr → May), resolution rate is holding at {Math.round(t.resolutionRate * 100)}%, and the per-customer movement is interesting:{' '}
+          The goal of Reporting Triage was never to <em>start</em> responding to customer issues — Bond CS was already fast to acknowledge,
+          with a median first-reply of ~{triageSnapshot.responseSpeed.firstReply.medianHours} hours. The goal was systematic <strong>resolution</strong>:
+          driving every reported data issue to a closed status, with no issues lost in the inbox. Post-launch, median time-to-resolve is
+          {' '}{triageSnapshot.responseSpeed.resolution.medianDays} days, with 87% closed within a week. Volume is steady (Apr → May),
+          resolution rate is holding at {Math.round(t.resolutionRate * 100)}%, and the per-customer movement is interesting:{' '}
           <strong>blackbearsportsgroup</strong> trended up in May, <strong>biggbycoffeeicecube</strong> spiked in April and is now silent (fix-and-stay-fixed),
           and longer-tail customers like <strong>sensplex</strong> and <strong>icevault</strong> are cooling.
         </div>

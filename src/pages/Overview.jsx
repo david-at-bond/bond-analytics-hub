@@ -21,8 +21,8 @@ export default function Overview({ auth }) {
   const stats = [
     { label: 'REP fixes shipped YTD', value: throughputSnapshot.ytdResolved, sub: 'Jira REP project',                 link: '/analytics/throughput' },
     { label: 'Issues triaged',        value: triageSnapshot.totals.triaged,  sub: `${Math.round(triageSnapshot.totals.resolutionRate * 100)}% resolved`, link: '/analytics/triage' },
-    { label: 'Median resolution',     value: `${triageSnapshot.resolutionSpeed.postLaunch.median} days`, sub: `down from ${triageSnapshot.resolutionSpeed.preLaunch.median}-day baseline`, link: '/analytics/triage' },
-    { label: 'Customer orgs served',  value: triageSnapshot.totals.uniqueOrgs, sub: 'distinct organizations',          link: '/analytics/triage' },
+    { label: 'Median first reply',    value: `~${triageSnapshot.responseSpeed.firstReply.medianHours}h`, sub: `${triageSnapshot.responseSpeed.firstReply.sameDayPct}% same business day`, link: '/analytics/triage' },
+    { label: 'Median resolution',     value: `${triageSnapshot.responseSpeed.resolution.medianDays} days`, sub: '87% within a week', link: '/analytics/triage' },
     { label: 'Reports in build',      value: reports.filter(r => r.status === 'In build').length, sub: `${reports.filter(r => r.status === 'Live').length} live`, link: '/reports' },
   ]
 
