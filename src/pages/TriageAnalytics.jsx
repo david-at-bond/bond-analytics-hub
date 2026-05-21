@@ -22,6 +22,104 @@ function StatTile({ label, value, sub }) {
   )
 }
 
+function ResolutionSpeed() {
+  const { resolutionSpeed: rs } = triageSnapshot
+  const distMax = Math.max(...rs.distribution.map(d => d.count))
+  const distTotal = rs.distribution.reduce((sum, d) => sum + d.count, 0)
+  const withinWeek = rs.distribution
+    .filter(d => d.bucket === '0–1 day' || d.bucket === '2–3 days' || d.bucket === '4–7 days')
+    .reduce((sum, d) => sum + d.count, 0)
+  const pctWithinWeek = Math.round((withinWeek / distTotal) * 100)
+  const speedup = Math.round(rs.preLaunch.median / rs.postLaunch.median)
+
+  return (
+    <div style={{
+      background: BOND.surface, border: `1px solid ${BOND.border}`,
+      borderRadius: 10, padding: '22px 24px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 18 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: BOND.text }}>Resolution speed</span>
+        <span style={{ fontSize: 11, color: BOND.textMuted }}>Time from customer email → issue marked resolved.</span>
+      </div>
+
+      {/* Before/after hero */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center', gap: 24,
+        background: BOND.surfaceSubtle, border: `1px solid ${BOND.border}`,
+        borderRadius: 10, padding: '22px 28px', marginBottom: 20,
+      }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+            Before triage launch
+          </div>
+          <div style={{ fontSize: 36, fontWeight: 700, color: BOND.textBody, lineHeight: 1, ...tabular }}>
+            {rs.preLaunch.median} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
+          </div>
+          <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 6 }}>
+            median, backward sweep baseline (n={rs.preLaunch.n})
+          </div>
+        </div>
+
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          color: BOND.gold, fontWeight: 700,
+        }}>
+          <div style={{ fontSize: 24, lineHeight: 1 }}>→</div>
+          <div style={{ fontSize: 12, marginTop: 4, color: BOND.primary, letterSpacing: '0.04em' }}>
+            {speedup}× faster
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BOND.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+            After triage launch
+          </div>
+          <div style={{ fontSize: 36, fontWeight: 700, color: BOND.primary, lineHeight: 1, ...tabular }}>
+            {rs.postLaunch.median} <span style={{ fontSize: 16, fontWeight: 500, color: BOND.textMuted }}>days</span>
+          </div>
+          <div style={{ fontSize: 11, color: BOND.textMuted, marginTop: 6 }}>
+            median post-launch (n={rs.postLaunch.n}, max {rs.postLaunch.max}d)
+          </div>
+        </div>
+      </div>
+
+      {/* Distribution */}
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: BOND.text }}>Distribution of resolution times (post-launch)</span>
+          <span style={{ fontSize: 11, color: BOND.textMuted, ...tabular }}>{pctWithinWeek}% within a week</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {rs.distribution.map(d => {
+            const pct = d.count / distMax
+            const sharePct = Math.round((d.count / distTotal) * 100)
+            return (
+              <div key={d.bucket} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 56px', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 12, color: BOND.textBody, fontWeight: 500 }}>{d.bucket}</span>
+                <div style={{
+                  height: 14, borderRadius: 4,
+                  background: `linear-gradient(to right, ${BOND.gold} 0%, ${BOND.gold} ${pct * 100}%, ${BOND.surfaceSubtle} ${pct * 100}%)`,
+                  border: `1px solid ${BOND.border}`,
+                }} />
+                <span style={{ fontSize: 12, color: BOND.textMuted, textAlign: 'right', ...tabular }}>
+                  {d.count} · {sharePct}%
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${BOND.border}`, fontSize: 11, color: BOND.textMuted, lineHeight: 1.5 }}>
+        Pre-launch baseline reflects issues that sat unseen in the customer success inbox before the triage funnel existed —
+        their "resolved" date was set when they were first systematically reviewed. The post-launch number is the live
+        operating metric: median 3 days from customer email to issue closed, with {pctWithinWeek}% of all issues resolved within a week.
+      </div>
+    </div>
+  )
+}
+
 function TrendPill({ trend }) {
   const s = TREND_STYLES[trend] || TREND_STYLES.stable
   return (
@@ -127,11 +225,13 @@ export default function TriageAnalytics() {
       <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <StatTile label="Issues triaged"        value={t.triaged} sub="since Apr 6 launch" />
+          <StatTile label="Median time to resolve" value={`${triageSnapshot.resolutionSpeed.postLaunch.median} days`} sub={`down from ${triageSnapshot.resolutionSpeed.preLaunch.median}-day baseline`} />
           <StatTile label="Resolution rate"       value={`${Math.round(t.resolutionRate * 100)}%`} sub={`${t.resolved} of ${t.triaged}`} />
           <StatTile label="Customer orgs served"  value={t.uniqueOrgs} sub={`${t.uniqueReporters} distinct reporters`} />
           <StatTile label="Currently open"        value={t.open + t.inProgress} sub={`${t.open} open · ${t.inProgress} in progress`} />
         </div>
 
+        <ResolutionSpeed />
         <VolumeBars />
         <PerOrgTable />
 
@@ -142,8 +242,12 @@ export default function TriageAnalytics() {
           <div style={{ fontSize: 12, fontWeight: 700, color: BOND.text, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
             Reading the data
           </div>
-          Reporting Triage went live on {triageSnapshot.liveSince}. April was the first full operating month; pace into May is roughly flat — issue volume is steady, not declining, and resolution rate has held at {Math.round(t.resolutionRate * 100)}%.
-          The interesting movement is per-customer: <strong>blackbearsportsgroup</strong> trended up in May, <strong>biggbycoffeeicecube</strong> spiked in April and is now silent (fix-and-stay-fixed), and longer-tail customers like <strong>sensplex</strong> and <strong>icevault</strong> are cooling.
+          The goal of Reporting Triage was never to <em>start</em> responding to customer issues — that was already happening.
+          The goal was to respond <strong>faster</strong>. Median time-to-resolve dropped from {triageSnapshot.resolutionSpeed.preLaunch.median} days
+          to {triageSnapshot.resolutionSpeed.postLaunch.median} since launch, with {Math.round(((triageSnapshot.resolutionSpeed.distribution[0].count + triageSnapshot.resolutionSpeed.distribution[1].count + triageSnapshot.resolutionSpeed.distribution[2].count) / triageSnapshot.resolutionSpeed.postLaunch.n) * 100)}% of all issues resolved within a week.
+          Volume is steady (Apr → May), resolution rate is holding at {Math.round(t.resolutionRate * 100)}%, and the per-customer movement is interesting:{' '}
+          <strong>blackbearsportsgroup</strong> trended up in May, <strong>biggbycoffeeicecube</strong> spiked in April and is now silent (fix-and-stay-fixed),
+          and longer-tail customers like <strong>sensplex</strong> and <strong>icevault</strong> are cooling.
         </div>
       </div>
     </div>

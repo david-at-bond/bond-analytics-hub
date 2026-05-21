@@ -17,6 +17,27 @@ export const triageSnapshot = {
     jiraLinked: 7,
   },
 
+  // Time from customer email → issue marked resolved.
+  // Pre-launch period reflects the backward Gmail sweep: issues sat unseen in
+  // the inbox before the triage funnel existed. Post-launch (Apr 6+) is the
+  // operating metric — what we ship against day-to-day now.
+  resolutionSpeed: {
+    postLaunch: { n: 106, median: 3,  mean: 3.7,  max: 16  },
+    preLaunch:  { n: 63,  median: 24, mean: 27.6, max: 122 },
+    // % buckets, post-launch only
+    distribution: [
+      { bucket: '0–1 day',   count: 39 },
+      { bucket: '2–3 days',  count: 22 },
+      { bucket: '4–7 days',  count: 31 },
+      { bucket: '8–14 days', count: 13 },
+      { bucket: '15+ days',  count: 1  },
+    ],
+    byMonth: [
+      { month: '2026-04', median: 3, max: 12, n: 58 },
+      { month: '2026-05', median: 3, max: 16, n: 48 },
+    ],
+  },
+
   // Monthly volume — Mar-onward is the post-launch period.
   // Jan/Feb numbers reflect the backward Gmail sweep that ran at launch.
   byMonth: [
