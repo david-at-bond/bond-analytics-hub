@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    date: '2026-05-21',
+    title: 'Recovered $3,751 in unreversed Stripe disputes',
+    description: 'Identified Stripe disputes that had been charged against Bond but never reversed out of the responsible facility accounts — meaning Bond had absorbed losses that should have been passed through. Total recovered: $3,751 in a single afternoon, roughly half an annual SaaS fee. Jason executed the recaptures.',
+    project: 'Financial Operations',
+    published: true,
+  },
+  {
     date: '2026-05-20',
     title: 'Data Share & Export — cost analysis',
     description: 'Quantified Snowflake compute + storage cost of customer-facing data shares and ad-hoc CSV exports. Identified the top three orgs driving share cost and the break-even threshold for moving them to a dedicated report.',
